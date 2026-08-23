@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BUZZER — Ekran</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
+  :root{ --phosphor:#35FF6E; --phosphor-dim:#1B7A38; --bg:#050807; --bg2:#0A120D; --amber:#FFB000; --line:rgba(53,255,110,0.18); --scan-op:0.18; --vig-op:0.65; }
+  body.light{ --phosphor:#12833F; --phosphor-dim:#6E9E82; --bg:#EEF3EE; --bg2:#FFFFFF; --amber:#B36A00; --line:rgba(18,131,63,0.18); --scan-op:0.03; --vig-op:0.06; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{ background:var(--bg); color:var(--phosphor); font-family:'Space Mono', monospace; min-height:100vh; display:flex; flex-direction:column; align-items:center; overflow-x:hidden; position:relative; transition:background .2s; }
+  body::before{ content:""; position:fixed; inset:0; background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,var(--scan-op)) 3px, rgba(0,0,0,var(--scan-op)) 3px); pointer-events:none; z-index:50; mix-blend-mode:multiply; }
+  body::after{ content:""; position:fixed; inset:0; background:radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,var(--vig-op)) 100%); pointer-events:none; z-index:51; }
+  header{ width:100%; max-width:980px; padding:22px 20px 8px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .logo{ font-family:'Press Start 2P', monospace; font-size:22px; letter-spacing:2px; text-shadow:0 0 6px var(--phosphor), 0 0 18px rgba(53,255,110,0.5); }
+  .logo span{ color:var(--amber); text-shadow:0 0 6px var(--amber), 0 0 18px rgba(255,176,0,0.5); }
+  .subtitle{ font-size:12px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:6px; }
+  .toolbar{ display:flex; gap:8px; }
+  .icon-btn{ font-family:'Space Mono', monospace; font-size:11px; background:transparent; color:var(--phosphor); border:1px solid var(--phosphor-dim); padding:8px 10px; border-radius:4px; cursor:pointer; min-width:38px; }
+  .icon-btn:hover{ background:rgba(53,255,110,0.08); border-color:var(--phosphor); }
+  main{ width:100%; max-width:980px; padding:16px 20px 40px; display:grid; grid-template-columns:2fr 1fr; gap:22px; }
+  @media (max-width:760px){ main{ grid-template-columns:1fr; } }
+  #stage{ display:flex; flex-direction:column; align-items:center; gap:16px; }
+  #arena{
+    position:relative; width:100%; aspect-ratio:4/3; border:2px solid var(--phosphor-dim); border-radius:6px;
+    box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06);
+    background:var(--bg2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px; text-align:center;
+  }
+  #arenaState{ font-family:'Press Start 2P', monospace; font-size:clamp(18px,4vw,30px); letter-spacing:1px; text-shadow:0 0 10px currentColor; color:var(--phosphor-dim); transition:color .15s; }
+  #arenaState.armed{ color:var(--phosphor); animation:pulse 1.1s infinite; }
+  #arenaState.locked{ color:var(--amber); }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  #winnerName{ font-family:'Press Start 2P', monospace; font-size:clamp(30px,7vw,54px); color:var(--amber); text-shadow:0 0 16px var(--amber); display:none; }
+  #qrBox{ background:#EAFFF0; padding:12px; border-radius:8px; box-shadow:0 0 20px rgba(53,255,110,0.3); }
+  #qrCanvas{ width:140px; height:140px; }
+  .actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  button{ font-family:'Press Start 2P', monospace; font-size:11px; letter-spacing:1px; background:transparent; color:var(--phosphor); border:2px solid var(--phosphor); padding:12px 20px; border-radius:4px; cursor:pointer; text-shadow:0 0 6px var(--phosphor); box-shadow:0 0 10px rgba(53,255,110,0.15); }
+  button:hover{ background:rgba(53,255,110,0.1); }
+  button.secondary{ color:var(--amber); border-color:var(--amber); text-shadow:0 0 6px var(--amber); font-size:10px; padding:10px 16px; }
+  #sidebar{ display:flex; flex-direction:column; gap:14px; }
+  .panel{ border:1px solid var(--line); border-radius:8px; padding:14px; background:rgba(53,255,110,0.02); }
+  .panel h3{ font-size:11px; letter-spacing:1px; color:var(--phosphor-dim); margin-bottom:10px; font-weight:normal; }
+  #leaderboard{ display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto; }
+  .lb-row{ display:flex; justify-content:space-between; font-size:13px; padding:6px 8px; border-radius:4px; background:rgba(53,255,110,0.03); }
+  .lb-row .n{ color:var(--phosphor); }
+  .lb-row .s{ color:var(--amber); font-family:'Press Start 2P', monospace; font-size:12px; }
+  .lb-row.empty{ color:var(--phosphor-dim); font-style:italic; }
+  footer{ width:100%; max-width:980px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
+  footer b{ color:var(--phosphor); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo"><span>BUZZER</span></div>
+    <div class="subtitle" id="txtSubtitle">gracze dołączają skanując QR w dowolnym momencie</div>
+  </div>
+  <div class="toolbar">
+    <button class="icon-btn" id="btnLang" title="Language">EN</button>
+    <button class="icon-btn" id="btnTheme" title="Theme">🌙</button>
+    <button class="icon-btn" id="btnFullscreen" title="Fullscreen">⛶</button>
+  </div>
+</header>
+<main>
+  <div id="stage">
+    <div id="arena">
+      <div id="arenaState">CZEKAM NA START</div>
+      <div id="winnerName"></div>
+      <div id="qrBox"><div id="qrCanvas"></div></div>
+    </div>
+    <div class="actions">
+      <button id="btnArm">UZBRÓJ / NOWE PYTANIE</button>
+      <button class="secondary" id="btnReset">RESETUJ WYNIKI</button>
+    </div>
+  </div>
+  <div id="sidebar">
+    <div class="panel">
+      <h3 id="lblLeaderboard">WYNIKI</h3>
+      <div id="leaderboard"><div class="lb-row empty" id="lbEmpty">Brak graczy jeszcze</div></div>
+    </div>
+  </div>
+</main>
+<footer id="footerText">Gracze skanują kod QR i dołączają w dowolnym momencie. Kliknij „UZBRÓJ”, przeczytaj pytanie na głos — kto pierwszy kliknie na telefonie, wygrywa punkt. Kliknij „UZBRÓJ” ponownie na kolejne pytanie.</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const el = {
+    arenaState:$('arenaState'), winnerName:$('winnerName'), qrCanvas:$('qrCanvas'),
+    btnArm:$('btnArm'), btnReset:$('btnReset'), leaderboard:$('leaderboard'), lbEmpty:$('lbEmpty'),
+    btnLang:$('btnLang'), btnTheme:$('btnTheme'), btnFullscreen:$('btnFullscreen'),
+    txtSubtitle:$('txtSubtitle'), lblLeaderboard:$('lblLeaderboard'), footerText:$('footerText')
+  };
+
+  const STR = { pl:{
+      subtitle:'gracze dołączają skanując QR w dowolnym momencie', waiting:'CZEKAM NA START', armed:'GOTOWE! KTO PIERWSZY?',
+      locked:'ODPOWIADA', arm:'UZBRÓJ / NOWE PYTANIE', reset:'RESETUJ WYNIKI', leaderboardLbl:'WYNIKI', empty:'Brak graczy jeszcze',
+      footer:'Gracze skanują kod QR i dołączają w dowolnym momencie. Kliknij „UZBRÓJ”, przeczytaj pytanie na głos — kto pierwszy kliknie na telefonie, wygrywa punkt. Kliknij „UZBRÓJ” ponownie na kolejne pytanie.'
+    }, en:{
+      subtitle:'players join by scanning the QR at any time', waiting:'WAITING TO START', armed:'READY! GO!',
+      locked:'ANSWERING', arm:'ARM / NEXT QUESTION', reset:'RESET SCORES', leaderboardLbl:'SCORES', empty:'No players yet',
+      footer:'Players join by scanning the QR at any time. Click "ARM", read the question aloud — whoever taps first on their phone wins the point. Click "ARM" again for the next question.'
+    } };
+  let lang='pl'; function t(k){ return STR[lang][k]; }
+
+  const players = new Map(); // connId -> {conn, name, score}
+  let armed=false, lockedId=null;
+
+  function renderArena(){
+    el.winnerName.style.display='none'; el.qrCanvas.parentElement.style.display='';
+    if (lockedId){
+      const p = players.get(lockedId);
+      el.arenaState.textContent = t('locked'); el.arenaState.className='locked';
+      el.winnerName.textContent = (p && p.name ? p.name.toUpperCase() : '???');
+      el.winnerName.style.display=''; el.qrCanvas.parentElement.style.display='none';
+    } else if (armed){
+      el.arenaState.textContent = t('armed'); el.arenaState.className='armed';
+    } else {
+      el.arenaState.textContent = t('waiting'); el.arenaState.className='';
+    }
+  }
+  function renderLeaderboard(){
+    const arr = Array.from(players.values()).sort((a,b)=>b.score-a.score);
+    if (arr.length===0){ el.leaderboard.innerHTML = '<div class="lb-row empty">'+t('empty')+'</div>'; return; }
+    el.leaderboard.innerHTML = arr.map(p => '<div class="lb-row"><span class="n">'+(p.name?p.name.toUpperCase():'?')+'</span><span class="s">'+p.score+'</span></div>').join('');
+  }
+  function renderStaticTexts(){
+    el.txtSubtitle.textContent = t('subtitle');
+    el.btnArm.textContent = t('arm');
+    el.btnReset.textContent = t('reset');
+    el.lblLeaderboard.textContent = t('leaderboardLbl');
+    el.footerText.textContent = t('footer');
+    renderArena(); renderLeaderboard();
+  }
+  el.btnLang.addEventListener('click', () => { lang=lang==='pl'?'en':'pl'; el.btnLang.textContent=lang==='pl'?'EN':'PL'; renderStaticTexts(); });
+  el.btnTheme.addEventListener('click', () => { document.body.classList.toggle('light'); el.btnTheme.textContent = document.body.classList.contains('light')?'☀️':'🌙'; });
+  el.btnFullscreen.addEventListener('click', () => { if(!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(()=>{});} else { document.exitFullscreen().catch(()=>{});} });
+
+  function broadcast(msg){ players.forEach(p => { if (p.conn && p.conn.open) p.conn.send(msg); }); }
+
+  el.btnArm.addEventListener('click', () => {
+    armed=true; lockedId=null; renderArena();
+    broadcast({ type:'state', armed:true });
+  });
+  el.btnReset.addEventListener('click', () => {
+    players.forEach(p => p.score=0);
+    renderLeaderboard();
+  });
+
+  const peer = new Peer();
+  peer.on('open', (id) => {
+    const dir = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')+1);
+    const url = new URL(dir + 'buzzer-controller.html', window.location.origin);
+    url.searchParams.set('code', id);
+    new QRCode(el.qrCanvas, { text:url.toString(), width:140, height:140, colorDark:'#0A120D', colorLight:'#EAFFF0' });
+  });
+  peer.on('error', (err) => { el.arenaState.textContent = 'Error: '+err.type; });
+  peer.on('connection', (conn) => {
+    conn.on('open', () => {
+      const id = conn.peer;
+      players.set(id, { conn, name:null, score:0 });
+      conn.send({ type:'state', armed });
+      renderLeaderboard();
+      conn.on('data', (data) => {
+        if (!data) return;
+        if (data.name !== undefined){ const p=players.get(id); if(p){ p.name = data.name?data.name.trim().slice(0,16):null; renderLeaderboard(); if(lockedId===id) renderArena(); } }
+        if (data.type==='buzz' && armed && !lockedId){
+          lockedId = id; armed=false;
+          const p = players.get(id); if (p) p.score++;
+          renderArena(); renderLeaderboard();
+          broadcast({ type:'state', armed:false, winnerId:id });
+        }
+      });
+      conn.on('close', () => { players.delete(id); renderLeaderboard(); if (lockedId===id){ lockedId=null; renderArena(); } });
+    });
+  });
+
+  renderStaticTexts();
+})();
+</script>
+</body>
+</html>
