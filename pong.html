@@ -61,13 +61,13 @@
   }
   .icon-btn:hover{ background:rgba(53,255,110,0.08); border-color:var(--phosphor); }
 
-  main{ width:100%; max-width:920px; padding:16px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  main{ width:100%; max-width:920px; padding:8px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
 
   .scoreboard{ font-family:'Press Start 2P', monospace; font-size:clamp(28px, 6vw, 46px); display:flex; align-items:center; gap:28px; text-shadow:0 0 10px currentColor; }
   .scoreboard .you{ color:var(--phosphor); }
   .scoreboard .cpu{ color:var(--amber); }
   .scoreboard .sep{ color:var(--phosphor-dim); font-size:0.6em; }
-  .score-labels{ display:flex; justify-content:space-between; width:100%; max-width:520px; font-size:10px; color:var(--phosphor-dim); letter-spacing:2px; margin-top:-10px; }
+  .score-labels{ display:flex; justify-content:space-between; width:100%; max-width:520px; font-size:10px; color:var(--phosphor-dim); letter-spacing:2px; margin-top:4px; }
 
   #gameWrap{
     position:relative; width:100%; max-width:720px; aspect-ratio: 4 / 3;
@@ -203,7 +203,7 @@
   </div>
 
   <div class="ranking-panel">
-    <h3><span id="lblRankingPanel">TOP 5 — PONG</span><a id="linkFullRanking" href="https://TWOJA-NAZWA.github.io/arcade-ranking/" target="_blank">Pełny ranking →</a></h3>
+    <h3><span id="lblRankingPanel">TOP 5 — PONG</span><a id="linkFullRanking" href="https://top-art-agency.github.io/ranking-gier/" target="_blank">Pełny ranking →</a></h3>
     <div id="rankList"><div class="rank-row empty">Ładowanie…</div></div>
   </div>
 
@@ -217,7 +217,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://TWOJA-NAZWA.github.io/arcade-ranking/scores.js"></script>
+<script src="https://top-art-agency.github.io/ranking-gier/scores.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
