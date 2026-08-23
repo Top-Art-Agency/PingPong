@@ -2,8 +2,8 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PONG — Ekran</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>PONG — Kontroler</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
 
@@ -11,144 +11,75 @@
     --phosphor: #35FF6E;
     --phosphor-dim: #1B7A38;
     --bg: #050807;
-    --bg2: #0A120D;
     --amber: #FFB000;
-    --line: rgba(53,255,110,0.18);
-    --text: #EAFFF0;
-    --scan-op: 0.18;
-    --vig-op: 0.65;
   }
   body.light{
     --phosphor: #12833F;
     --phosphor-dim: #6E9E82;
     --bg: #EEF3EE;
-    --bg2: #FFFFFF;
     --amber: #B36A00;
-    --line: rgba(18,131,63,0.18);
-    --text: #0A120D;
-    --scan-op: 0.03;
-    --vig-op: 0.06;
   }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{height:100%;}
+  body.player2{ --phosphor: var(--amber); --phosphor-dim: color-mix(in srgb, var(--amber) 45%, transparent); }
+
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  html,body{ height:100%; overscroll-behavior:none; }
   body{
     background:var(--bg); color:var(--phosphor); font-family:'Space Mono', monospace;
-    min-height:100vh; display:flex; flex-direction:column; align-items:center;
-    overflow-x:hidden; position:relative; transition:background .2s;
-  }
-  body::before{
-    content:""; position:fixed; inset:0;
-    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,var(--scan-op)) 3px, rgba(0,0,0,var(--scan-op)) 3px);
-    pointer-events:none; z-index:50; mix-blend-mode:multiply;
-  }
-  body::after{
-    content:""; position:fixed; inset:0;
-    background:radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,var(--vig-op)) 100%);
-    pointer-events:none; z-index:51;
+    display:flex; flex-direction:column; touch-action:none; overflow:hidden; transition:background .2s;
   }
 
-  header{ width:100%; max-width:920px; padding:22px 20px 8px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
-  .head-left{ text-align:left; }
-  .logo{ font-family:'Press Start 2P', monospace; font-size:22px; letter-spacing:2px; text-shadow:0 0 6px var(--phosphor), 0 0 18px rgba(53,255,110,0.5); }
-  .logo span{ color:var(--amber); text-shadow:0 0 6px var(--amber), 0 0 18px rgba(255,176,0,0.5); }
-  .subtitle{ font-size:12px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:6px; }
+  header{ padding:14px 16px 8px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+  .logo{ font-family:'Press Start 2P', monospace; font-size:15px; letter-spacing:2px; text-shadow:0 0 6px var(--phosphor); }
+  .logo span{ color:var(--amber); text-shadow:0 0 6px var(--amber); }
+  body.player2 .logo span{ color:var(--phosphor); text-shadow:0 0 6px var(--phosphor); }
 
-  .toolbar{ display:flex; gap:8px; }
+  .toolbar{ display:flex; gap:6px; }
   .icon-btn{
-    font-family:'Space Mono', monospace; font-size:11px; letter-spacing:0.5px;
+    font-family:'Space Mono', monospace; font-size:10px; letter-spacing:0.5px;
     background:transparent; color:var(--phosphor); border:1px solid var(--phosphor-dim);
-    padding:8px 10px; border-radius:4px; cursor:pointer; min-width:38px;
-  }
-  .icon-btn:hover{ background:rgba(53,255,110,0.08); border-color:var(--phosphor); }
-
-  main{ width:100%; max-width:920px; padding:16px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
-
-  .scoreboard{ font-family:'Press Start 2P', monospace; font-size:clamp(28px, 6vw, 46px); display:flex; align-items:center; gap:28px; text-shadow:0 0 10px currentColor; }
-  .scoreboard .you{ color:var(--phosphor); }
-  .scoreboard .cpu{ color:var(--amber); }
-  .scoreboard .sep{ color:var(--phosphor-dim); font-size:0.6em; }
-  .score-labels{ display:flex; justify-content:space-between; width:100%; max-width:520px; font-size:10px; color:var(--phosphor-dim); letter-spacing:2px; margin-top:-10px; }
-
-  #gameWrap{
-    position:relative; width:100%; max-width:720px; aspect-ratio: 4 / 3;
-    border:2px solid var(--phosphor-dim); border-radius:6px;
-    box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06);
-    background:linear-gradient(var(--bg2), var(--bg2)) padding-box;
-    overflow:hidden;
-  }
-  canvas{ display:block; width:100%; height:100%; }
-
-  #fullscreenArea:fullscreen, #fullscreenArea:-webkit-full-screen{
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
-    background:var(--bg); width:100vw; height:100vh; padding:20px;
-  }
-  #fullscreenArea:fullscreen #gameWrap, #fullscreenArea:-webkit-full-screen #gameWrap{
-    max-width:none; width:min(94vw, calc(88vh * 4 / 3)); height:min(88vh, calc(94vw * 3 / 4));
+    padding:6px 8px; border-radius:4px; cursor:pointer; min-width:32px;
   }
 
-  #overlayMsg{
-    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:16px; text-align:center; background:rgba(5,8,7,0.92);
-    font-family:'Press Start 2P', monospace; font-size:14px; letter-spacing:1px; padding:24px; z-index:5;
-  }
-  body.light #overlayMsg{ background:rgba(238,243,238,0.95); }
-  #overlayMsg .small{ font-family:'Space Mono', monospace; font-size:12px; color:var(--phosphor-dim); letter-spacing:0.5px; max-width:400px; line-height:1.7; }
-  #overlayMsg.hidden{ display:none; }
-  #overlayMsg.countdown-mode #qrBox, #overlayMsg.countdown-mode .status-row{ display:none; }
-  #overlayTitle.countdown-number{ font-size:64px; }
-
-  #qrBox{ background:#EAFFF0; padding:14px; border-radius:8px; box-shadow:0 0 24px rgba(53,255,110,0.35); }
-  #qrBox img, #qrBox canvas{ display:block; }
-
-  .status-row{ display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:0.5px; }
-  .dot{ width:9px; height:9px; border-radius:50%; background:#555; flex-shrink:0; }
-  .dot.waiting{ background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite; }
+  .status-row{ display:flex; align-items:center; justify-content:center; gap:8px; font-size:10px; letter-spacing:0.5px; margin:0 0 4px; color:var(--phosphor-dim); flex-shrink:0; }
+  .dot{ width:8px; height:8px; border-radius:50%; background:#555; flex-shrink:0; }
+  .dot.connecting{ background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite; }
   .dot.connected{ background:var(--phosphor); box-shadow:0 0 8px var(--phosphor); }
+  .dot.error{ background:#FF5D5D; box-shadow:0 0 8px #FF5D5D; }
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
 
-  button{
-    font-family:'Press Start 2P', monospace; font-size:11px; letter-spacing:1px;
-    background:transparent; color:var(--phosphor); border:2px solid var(--phosphor);
-    padding:12px 22px; border-radius:4px; cursor:pointer;
-    text-shadow:0 0 6px var(--phosphor); box-shadow:0 0 10px rgba(53,255,110,0.15);
-    transition:all .15s;
+  #pads{ flex:1; display:flex; flex-direction:column; gap:10px; padding:10px 14px 18px; min-height:0; }
+
+  .pad{
+    flex:1; border:2px solid var(--phosphor-dim); border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Press Start 2P', monospace; font-size:clamp(20px, 8vw, 34px); letter-spacing:2px;
+    color:var(--phosphor-dim); background:rgba(53,255,110,0.03);
+    transition:background .08s, color .08s, border-color .08s; min-height:0;
   }
-  button:hover{ background:rgba(53,255,110,0.1); }
-  button:disabled{ opacity:0.3; cursor:not-allowed; }
+  .pad.active{ color:var(--phosphor); border-color:var(--phosphor); background:rgba(53,255,110,0.16); box-shadow:0 0 30px rgba(53,255,110,0.25) inset; }
+  .pad .arrow{ font-size:1.6em; margin-right:14px; }
 
-  .controls-panel{
-    width:100%; max-width:720px; display:grid; grid-template-columns:1fr 1fr; gap:14px;
-    padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02);
+  #hint{ text-align:center; font-size:11px; color:var(--phosphor-dim); padding:0 20px 10px; line-height:1.6; flex-shrink:0; }
+  #hint b{ color:var(--phosphor); }
+
+  #nameRow{ padding:0 16px 10px; flex-shrink:0; }
+  #inputName{
+    width:100%; font-family:'Space Mono', monospace; font-size:14px; letter-spacing:0.5px;
+    background:rgba(53,255,110,0.04); color:var(--phosphor); border:1px solid var(--phosphor-dim);
+    border-radius:6px; padding:10px 12px; outline:none;
   }
-  @media (max-width:520px){ .controls-panel{ grid-template-columns:1fr; } }
-  .ctrl-group{ display:flex; flex-direction:column; gap:6px; }
-  .ctrl-group.full{ grid-column:1 / -1; }
-  .ctrl-group label{ font-size:10px; letter-spacing:0.5px; color:var(--phosphor-dim); display:flex; justify-content:space-between; }
-  input[type=range]{ -webkit-appearance:none; width:100%; height:4px; border-radius:2px; background:var(--phosphor-dim); outline:none; }
-  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--phosphor); box-shadow:0 0 6px var(--phosphor); cursor:pointer; }
-  .seg-row{ display:flex; gap:6px; }
-  .seg-btn{ flex:1; font-size:9px; padding:8px 4px; border:1px solid var(--phosphor-dim); color:var(--phosphor-dim); background:transparent; border-radius:4px; }
-  .seg-btn.active{ color:var(--phosphor); border-color:var(--phosphor); box-shadow:0 0 8px rgba(53,255,110,0.25); }
+  #inputName::placeholder{ color:var(--phosphor-dim); opacity:0.7; }
+  #inputName:focus{ border-color:var(--phosphor); }
 
-  footer{ width:100%; max-width:720px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
-  footer b{ color:var(--phosphor); }
-
-  .ranking-panel{ width:100%; max-width:720px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); }
-  .ranking-panel h3{ font-size:11px; letter-spacing:1px; color:var(--phosphor-dim); margin-bottom:10px; font-weight:normal; display:flex; justify-content:space-between; align-items:center; }
-  .ranking-panel h3 a{ color:var(--phosphor); text-decoration:none; font-size:10px; border-bottom:1px dotted var(--phosphor); }
-  .rank-row{ display:flex; justify-content:space-between; font-size:12px; padding:5px 8px; border-radius:4px; background:rgba(53,255,110,0.03); margin-bottom:4px; }
-  .rank-row .n{ color:var(--phosphor); }
-  .rank-row .s{ color:var(--amber); font-family:'Press Start 2P', monospace; font-size:11px; }
-  .rank-row.empty{ color:var(--phosphor-dim); font-style:italic; background:none; }
+  #colorRow{ display:flex; gap:8px; padding:0 16px 10px; flex-shrink:0; justify-content:center; }
+  .swatch{ width:30px; height:30px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); cursor:pointer; flex-shrink:0; transition:transform .1s, border-color .1s; }
+  .swatch.selected{ border-color:#fff; transform:scale(1.15); box-shadow:0 0 10px currentColor; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="head-left">
-    <div class="logo"><span>PONG</span></div>
-    <div class="subtitle" id="txtSubtitle">zeskanuj kod QR telefonem, żeby zostać kontrolerem</div>
-  </div>
+  <div class="logo"><span>PONG</span></div>
   <div class="toolbar">
     <button class="icon-btn" id="btnLang" title="Language">EN</button>
     <button class="icon-btn" id="btnTheme" title="Theme">🌙</button>
@@ -156,571 +87,178 @@
   </div>
 </header>
 
-<main>
+<div class="status-row"><div class="dot connecting" id="dot"></div><span id="statusLabel">Łączenie z ekranem…</span></div>
+<div id="nameRow"><input type="text" id="inputName" maxlength="16" placeholder="Twoje imię (opcjonalnie)"></div>
+<div id="colorRow"></div>
+<div id="hint">Trzymaj wciśnięty przycisk, żeby przesuwać paletkę na ekranie. Puść, żeby zatrzymać.</div>
 
-  <div id="fullscreenArea">
-  <div>
-    <div class="scoreboard">
-      <span class="you" id="scoreYou">0</span>
-      <span class="sep">:</span>
-      <span class="cpu" id="scoreCpu">0</span>
-    </div>
-    <div class="score-labels"><span id="lblLeft">GRACZ</span><span id="lblRight">CPU</span></div>
-  </div>
-
-  <div id="gameWrap">
-    <canvas id="game"></canvas>
-    <div id="overlayMsg">
-      <div id="overlayTitle">ZESKANUJ, ŻEBY DOŁĄCZYĆ</div>
-      <div id="qrBox"><div id="qrCanvas"></div></div>
-      <div class="status-row"><div class="dot waiting" id="dot"></div><span id="statusLabel">Czekam na telefon…</span></div>
-      <div id="countdownSub" class="small" style="display:none;"></div>
-      <button id="btnStart" disabled style="display:none;">Start</button>
-    </div>
-  </div>
-  </div>
-
-  <div class="controls-panel">
-    <div class="ctrl-group full">
-      <label id="lblMode">Tryb gry</label>
-      <div class="seg-row">
-        <button class="seg-btn active" id="modeBtn1p">1 GRACZ VS CPU</button>
-        <button class="seg-btn" id="modeBtn2p">2 GRACZY</button>
-      </div>
-    </div>
-    <div class="ctrl-group">
-      <label><span id="lblSpeed">Prędkość piłki</span> <span id="speedVal">1.0x</span></label>
-      <input type="range" id="speed" min="0.6" max="1.8" step="0.1" value="1.0">
-    </div>
-    <div class="ctrl-group" id="cpuLevelGroup">
-      <label id="lblCpu">Poziom CPU</label>
-      <div class="seg-row">
-        <button class="seg-btn" data-d="0.5" id="diffEasy">ŁATWY</button>
-        <button class="seg-btn active" data-d="0.75" id="diffMed">ŚREDNI</button>
-        <button class="seg-btn" data-d="1.0" id="diffHard">TRUDNY</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="ranking-panel">
-    <h3><span id="lblRankingPanel">TOP 5 — PONG</span><a id="linkFullRanking" href="https://TWOJA-NAZWA.github.io/arcade-ranking/" target="_blank">Pełny ranking →</a></h3>
-    <div id="rankList"><div class="rank-row empty">Ładowanie…</div></div>
-  </div>
-
-  <footer id="footerText">
-    Gra do <b>7 punktów</b>. Ekran łączy się z telefonem bezpośrednio (WebRTC) — obie strony muszą mieć internet, ale sama rozgrywka nie przechodzi przez żaden Twój serwer.
-  </footer>
-
-</main>
+<div id="pads">
+  <div class="pad" id="padUp" data-dir="up"><span class="arrow">▲</span>GÓRA</div>
+  <div class="pad" id="padDown" data-dir="down"><span class="arrow">▼</span>DÓŁ</div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://TWOJA-NAZWA.github.io/arcade-ranking/scores.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
   const el = {
-    speed: $('speed'), speedVal: $('speedVal'),
-    overlay: $('overlayMsg'), overlayTitle: $('overlayTitle'), btnStart: $('btnStart'),
-    dot: $('dot'), statusLabel: $('statusLabel'), qrCanvas: $('qrCanvas'),
-    scoreYou: $('scoreYou'), scoreCpu: $('scoreCpu'), canvas: $('game'),
-    lblLeft: $('lblLeft'), lblRight: $('lblRight'),
+    dot: $('dot'), statusLabel: $('statusLabel'), padUp: $('padUp'), padDown: $('padDown'),
     btnLang: $('btnLang'), btnTheme: $('btnTheme'), btnFullscreen: $('btnFullscreen'),
-    txtSubtitle: $('txtSubtitle'), lblMode: $('lblMode'), lblSpeed: $('lblSpeed'), lblCpu: $('lblCpu'),
-    modeBtn1p: $('modeBtn1p'), modeBtn2p: $('modeBtn2p'),
-    diffEasy: $('diffEasy'), diffMed: $('diffMed'), diffHard: $('diffHard'),
-    footerText: $('footerText'), cpuLevelGroup: $('cpuLevelGroup'), countdownSub: $('countdownSub')
+    hint: $('hint'), inputName: $('inputName'), colorRow: $('colorRow')
   };
 
-  // ---- i18n ----
   const STR = {
     pl: {
-      subtitle: 'zeskanuj kod QR telefonem, żeby zostać kontrolerem',
-      overlayQrTitle: 'ZESKANUJ, ŻEBY DOŁĄCZYĆ',
-      waitingOne: 'Czekam na telefon…',
-      waitingP1: 'Czekam na Gracza 1…',
-      waitingP2: 'Gracz 1 połączony · czekam na Gracza 2…',
-      connectedOne: 'Telefon połączony',
-      connectedBoth: 'Obaj gracze połączeni',
-      disconnected: 'Telefon rozłączony — odśwież stronę, żeby połączyć ponownie',
-      start: 'Start',
-      playAgain: 'Zagraj ponownie',
-      won: 'WYGRANA!',
-      lost: 'PRZEGRANA',
-      p1win: 'WYGRAŁ GRACZ 1',
-      p2win: 'WYGRAŁ GRACZ 2',
-      wonSub: 'Pokonałeś CPU.',
-      lostSub: 'CPU wygrało tę rundę.',
-      p1winSub: 'Gracz 1 wygrywa tę rundę.',
-      p2winSub: 'Gracz 2 wygrywa tę rundę.',
-      winsSuffix: 'WYGRYWA!',
-      labelLeft1p: 'GRACZ', labelRight1p: 'CPU',
-      labelLeft2p: 'GRACZ 1', labelRight2p: 'GRACZ 2',
-      modeLabel: 'Tryb gry', mode1p: '1 GRACZ VS CPU', mode2p: '2 GRACZY',
-      speedLabel: 'Prędkość piłki', cpuLabel: 'Poziom CPU',
-      easy: 'ŁATWY', med: 'ŚREDNI', hard: 'TRUDNY',
-      footer1p: 'Gra do <b>7 punktów</b>. Ekran łączy się z telefonem bezpośrednio (WebRTC) — obie strony muszą mieć internet, ale sama rozgrywka nie przechodzi przez żaden Twój serwer.',
-      footer2p: 'Gra do <b>7 punktów</b>. Obaj gracze skanują ten sam kod QR — pierwszy zeskanowany telefon steruje lewą paletką, drugi prawą.',
-      startingIn: 'Zaczynamy za...'
+      connecting: 'Łączenie z ekranem…',
+      connected: 'Połączono z ekranem',
+      connectedP1: 'Połączono · Gracz 1 (lewo)',
+      connectedP2: 'Połączono · Gracz 2 (prawo)',
+      full: 'Ekran jest już pełny — spróbuj później',
+      disconnected: 'Rozłączono — odśwież stronę',
+      noCode: 'Brak kodu ekranu w linku — zeskanuj QR jeszcze raz',
+      errorPrefix: 'Błąd: ',
+      hint: 'Trzymaj wciśnięty przycisk, żeby przesuwać paletkę na ekranie. Puść, żeby zatrzymać.',
+      up: 'GÓRA', down: 'DÓŁ',
+      namePlaceholder: 'Twoje imię (opcjonalnie)'
     },
     en: {
-      subtitle: 'scan the QR code with your phone to become a controller',
-      overlayQrTitle: 'SCAN TO JOIN',
-      waitingOne: 'Waiting for phone…',
-      waitingP1: 'Waiting for Player 1…',
-      waitingP2: 'Player 1 connected · waiting for Player 2…',
-      connectedOne: 'Phone connected',
-      connectedBoth: 'Both players connected',
-      disconnected: 'Phone disconnected — refresh the page to reconnect',
-      start: 'Start',
-      playAgain: 'Play again',
-      won: 'YOU WIN!',
-      lost: 'YOU LOSE',
-      p1win: 'PLAYER 1 WINS',
-      p2win: 'PLAYER 2 WINS',
-      wonSub: 'You beat the CPU.',
-      lostSub: 'The CPU won this round.',
-      p1winSub: 'Player 1 wins this round.',
-      p2winSub: 'Player 2 wins this round.',
-      winsSuffix: 'WINS!',
-      labelLeft1p: 'PLAYER', labelRight1p: 'CPU',
-      labelLeft2p: 'PLAYER 1', labelRight2p: 'PLAYER 2',
-      modeLabel: 'Game mode', mode1p: '1 PLAYER VS CPU', mode2p: '2 PLAYERS',
-      speedLabel: 'Ball speed', cpuLabel: 'CPU level',
-      easy: 'EASY', med: 'MEDIUM', hard: 'HARD',
-      footer1p: 'Play to <b>7 points</b>. The screen connects to the phone directly (WebRTC) — both sides need internet, but gameplay itself never passes through any server of yours.',
-      footer2p: 'Play to <b>7 points</b>. Both players scan the same QR code — the first phone to scan controls the left paddle, the second controls the right paddle.',
-      startingIn: 'Starting in...'
+      connecting: 'Connecting to screen…',
+      connected: 'Connected to screen',
+      connectedP1: 'Connected · Player 1 (left)',
+      connectedP2: 'Connected · Player 2 (right)',
+      full: 'Screen is already full — try again later',
+      disconnected: 'Disconnected — refresh the page',
+      noCode: 'No screen code in the link — scan the QR again',
+      errorPrefix: 'Error: ',
+      hint: 'Hold the button to move your paddle on the screen. Release to stop.',
+      up: 'UP', down: 'DOWN',
+      namePlaceholder: 'Your name (optional)'
     }
   };
   let lang = 'pl';
+  let statusState = 'connecting';
   function t(key){ return STR[lang][key]; }
-
-  // ---- status / overlay state machine (so language toggle can re-render) ----
-  let statusState = 'waitingOne'; // key into STR for current status text
-  let overlayState = 'qr'; // 'qr' | 'countdown' | 'won' | 'lost' | 'p1win' | 'p2win'
-  let countdownTimer = null;
-  let autoRestartTimer = null;
-  let countdownN = 3;
-
-  function cancelCountdown(){
-    if (countdownTimer){ clearInterval(countdownTimer); countdownTimer = null; }
-  }
-  function cancelAutoRestart(){
-    if (autoRestartTimer){ clearTimeout(autoRestartTimer); autoRestartTimer = null; }
-  }
-
-  function renderStatus(){
-    el.statusLabel.textContent = t(statusState);
-  }
-  function renderOverlay(){
-    if (overlayState === 'countdown'){
-      el.overlayTitle.classList.add('countdown-number');
-      el.overlay.classList.add('countdown-mode');
-      el.overlayTitle.textContent = String(countdownN);
-      el.countdownSub.style.display = '';
-      el.countdownSub.textContent = t('startingIn');
-      return;
-    }
-    el.overlayTitle.classList.remove('countdown-number');
-    el.overlay.classList.remove('countdown-mode');
-    el.countdownSub.style.display = 'none';
-    if (overlayState === 'qr'){
-      el.overlayTitle.textContent = t('overlayQrTitle');
-    } else {
-      const titleKey = { won:'won', lost:'lost', p1win:'p1win', p2win:'p2win' }[overlayState];
-      const subKey = { won:'wonSub', lost:'lostSub', p1win:'p1winSub', p2win:'p2winSub' }[overlayState];
-      const winnerName = { won: names[1], lost: null, p1win: names[1], p2win: names[2] }[overlayState];
-      el.overlayTitle.textContent = winnerName ? (winnerName.toUpperCase() + ' ' + t('winsSuffix')) : t(titleKey);
-      const sub = document.getElementById('gameoverSub');
-      if (sub) sub.textContent = t(subKey);
-    }
-  }
-
-  function isReady(){
-    const p1ok = !!slots[1], p2ok = !!slots[2];
-    return state.mode === '1p' ? p1ok : (p1ok && p2ok);
-  }
-
-  function beginCountdown(){
-    cancelCountdown();
-    cancelAutoRestart();
-    overlayState = 'countdown';
-    countdownN = 3;
-    el.overlay.classList.remove('hidden');
-    renderOverlay();
-    countdownTimer = setInterval(() => {
-      countdownN--;
-      if (countdownN <= 0){
-        cancelCountdown();
-        startGame();
-      } else {
-        renderOverlay();
-      }
-    }, 1000);
-  }
-
-  function startGame(){
-    el.overlay.classList.add('hidden');
-    state.youScore = 0; state.cpuScore = 0;
-    el.scoreYou.textContent = 0; el.scoreCpu.textContent = 0;
-    state.running = true;
-    resetBall();
-  }
-
-  function backToWaiting(){
-    cancelCountdown();
-    cancelAutoRestart();
-    overlayState = 'qr';
-    renderOverlay();
-    el.overlay.classList.remove('hidden');
-  }
-  function renderModeLabels(){
-    if (state.mode === '1p'){
-      el.lblLeft.textContent = names[1] ? names[1].toUpperCase() : t('labelLeft1p');
-      el.lblRight.textContent = t('labelRight1p');
-    } else {
-      el.lblLeft.textContent = names[1] ? names[1].toUpperCase() : t('labelLeft2p');
-      el.lblRight.textContent = names[2] ? names[2].toUpperCase() : t('labelRight2p');
-    }
-    const c1 = colors[1] || '#35FF6E';
-    const c2 = colors[2] || '#FFB000';
-    el.scoreYou.style.color = c1;
-    el.scoreYou.style.textShadow = '0 0 10px ' + c1;
-    el.scoreCpu.style.color = c2;
-    el.scoreCpu.style.textShadow = '0 0 10px ' + c2;
-  }
+  function renderStatus(){ el.statusLabel.textContent = t(statusState); }
   function renderStaticTexts(){
-    el.txtSubtitle.textContent = t('subtitle');
-    el.lblMode.textContent = t('modeLabel');
-    el.lblSpeed.textContent = t('speedLabel');
-    el.lblCpu.textContent = t('cpuLabel');
-    el.modeBtn1p.textContent = t('mode1p');
-    el.modeBtn2p.textContent = t('mode2p');
-    el.diffEasy.textContent = t('easy');
-    el.diffMed.textContent = t('med');
-    el.diffHard.textContent = t('hard');
-    el.footerText.innerHTML = state.mode === '2p' ? t('footer2p') : t('footer1p');
-    renderModeLabels();
+    el.hint.textContent = t('hint');
+    el.inputName.placeholder = t('namePlaceholder');
+    el.padUp.innerHTML = '<span class="arrow">▲</span>' + t('up');
+    el.padDown.innerHTML = '<span class="arrow">▼</span>' + t('down');
     renderStatus();
-    renderOverlay();
   }
-
   el.btnLang.addEventListener('click', () => {
     lang = lang === 'pl' ? 'en' : 'pl';
     el.btnLang.textContent = lang === 'pl' ? 'EN' : 'PL';
     renderStaticTexts();
   });
-
-  // ---- theme ----
   el.btnTheme.addEventListener('click', () => {
     document.body.classList.toggle('light');
     el.btnTheme.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
   });
-
-  // ---- fullscreen ----
   el.btnFullscreen.addEventListener('click', () => {
     if (!document.fullscreenElement){
-      const target = document.getElementById('fullscreenArea') || document.documentElement;
-      target.requestFullscreen().catch(()=>{});
+      document.documentElement.requestFullscreen().catch(()=>{});
     } else {
       document.exitFullscreen().catch(()=>{});
     }
   });
 
-  el.speed.addEventListener('input', () => { state.speedMult = parseFloat(el.speed.value); el.speedVal.textContent = state.speedMult.toFixed(1)+'x'; });
+  const params = new URLSearchParams(window.location.search);
+  const hostId = params.get('code');
 
-  function setDiff(btn, val){
-    [el.diffEasy, el.diffMed, el.diffHard].forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    state.cpuLevel = val;
-  }
-  el.diffEasy.addEventListener('click', () => setDiff(el.diffEasy, 0.5));
-  el.diffMed.addEventListener('click', () => setDiff(el.diffMed, 0.75));
-  el.diffHard.addEventListener('click', () => setDiff(el.diffHard, 1.0));
+  let conn = null;
+  let up = false, down = false;
 
-  function setMode(mode){
-    state.mode = mode;
-    el.modeBtn1p.classList.toggle('active', mode==='1p');
-    el.modeBtn2p.classList.toggle('active', mode==='2p');
-    el.cpuLevelGroup.style.display = mode==='1p' ? '' : 'none';
-    renderModeLabels();
-    el.footerText.innerHTML = mode === '2p' ? t('footer2p') : t('footer1p');
-    updateReadyState();
-  }
-  el.modeBtn1p.addEventListener('click', () => setMode('1p'));
-  el.modeBtn2p.addEventListener('click', () => setMode('2p'));
+  const COLORS = ['#35FF6E', '#FFB000', '#3FE0FF', '#FF5D5D', '#D45DFF', '#FFEC5D'];
+  let selectedColor = null;
+  COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'swatch';
+    sw.style.background = c;
+    sw.style.color = c;
+    sw.addEventListener('click', () => {
+      selectedColor = c;
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+      sendState();
+    });
+    el.colorRow.appendChild(sw);
+  });
 
-  // ---- WebRTC (PeerJS) ----
-  let inputUp = false, inputDown = false;     // player 1 (left)
-  let inputUp2 = false, inputDown2 = false;   // player 2 (right), used only in 2p mode
-  const slots = { 1: null, 2: null }; // conn objects per slot
-  const names = { 1: null, 2: null }; // imiona graczy per slot
-  const colors = { 1: null, 2: null }; // wybrane kolory per slot (hex lub null = domyślny)
-
-  function updateReadyState(){
-    const p1ok = !!slots[1];
-    const p2ok = !!slots[2];
-    let ready;
-    if (state.mode === '1p'){
-      ready = p1ok;
-      statusState = ready ? 'connectedOne' : 'waitingOne';
-    } else {
-      ready = p1ok && p2ok;
-      statusState = ready ? 'connectedBoth' : (p1ok ? 'waitingP2' : 'waitingP1');
-    }
-    el.dot.className = 'dot ' + (ready ? 'connected' : 'waiting');
-    renderStatus();
-    if (ready && overlayState === 'qr'){
-      beginCountdown();
-    } else if (!ready && (overlayState === 'qr' || overlayState === 'countdown')){
-      cancelCountdown();
-      overlayState = 'qr';
-      renderOverlay();
+  function sendState(){
+    if (conn && conn.open){
+      conn.send({ type:'input', up, down, name: el.inputName.value.trim().slice(0, 16), color: selectedColor });
     }
   }
-
-  const peer = new Peer();
-  peer.on('open', (id) => {
-    const dir = window.location.pathname.endsWith('/')
-      ? window.location.pathname
-      : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-    const url = new URL(dir + 'pong-controller.html', window.location.origin);
-    url.searchParams.set('code', id);
-    new QRCode(el.qrCanvas, { text: url.toString(), width: 200, height: 200, colorDark:'#0A120D', colorLight:'#EAFFF0' });
+  function sendName(){ sendState(); }
+  let nameDebounce = null;
+  el.inputName.addEventListener('input', () => {
+    clearTimeout(nameDebounce);
+    nameDebounce = setTimeout(sendName, 300);
   });
-  peer.on('error', (err) => {
-    el.statusLabel.textContent = 'Error: ' + err.type;
-  });
-  peer.on('connection', (conn) => {
-    conn.on('open', () => {
-      let slot = null;
-      if (state.mode === '1p'){
-        slot = 1;
-      } else {
-        if (!slots[1]) slot = 1;
-        else if (!slots[2]) slot = 2;
-      }
-      if (slot === null){
-        conn.send({ type:'full' });
-        setTimeout(()=>conn.close(), 300);
-        return;
-      }
-      slots[slot] = conn;
-      conn.send({ type:'assign', slot });
-      updateReadyState();
 
-      if (!window._assignHeartbeat){
-        window._assignHeartbeat = setInterval(() => {
-          Object.keys(slots).forEach(s => {
-            if (slots[s] && slots[s].open) slots[s].send({ type:'assign', slot: parseInt(s,10) });
-          });
-        }, 1000);
-      }
-
+  if (!hostId){
+    statusState = 'noCode';
+    el.dot.className = 'dot error';
+  } else {
+    statusState = 'connecting';
+    el.dot.className = 'dot connecting';
+    const peer = new Peer();
+    peer.on('open', () => {
+      conn = peer.connect(hostId, { reliable:false });
+      conn.on('open', () => {
+        statusState = 'connected';
+        el.dot.className = 'dot connected';
+        renderStatus();
+        sendName();
+      });
       conn.on('data', (data) => {
-        if (data && data.type === 'input'){
-          if (slot === 1){ inputUp = !!data.up; inputDown = !!data.down; }
-          else { inputUp2 = !!data.up; inputDown2 = !!data.down; }
-          if (data.name !== undefined){
-            const cleanName = data.name ? data.name.trim().slice(0, 16) : null;
-            if (names[slot] !== cleanName){ names[slot] = cleanName; renderModeLabels(); }
+        if (!data) return;
+        if (data.type === 'assign'){
+          if (data.slot === 2){
+            document.body.classList.add('player2');
+            statusState = 'connectedP2';
+          } else {
+            statusState = 'connectedP1';
           }
-          if (data.color !== undefined && colors[slot] !== data.color){
-            colors[slot] = data.color; renderModeLabels();
-          }
-        } else if (data && data.type === 'name'){
-          names[slot] = data.name ? data.name.trim().slice(0, 16) : null;
-          renderModeLabels();
+          el.dot.className = 'dot connected';
+          renderStatus();
+          sendName();
+        } else if (data.type === 'full'){
+          statusState = 'full';
+          el.dot.className = 'dot error';
+          renderStatus();
         }
       });
       conn.on('close', () => {
-        slots[slot] = null;
-        names[slot] = null;
-        colors[slot] = null;
-        if (slot === 1){ inputUp = false; inputDown = false; }
-        else { inputUp2 = false; inputDown2 = false; }
         statusState = 'disconnected';
-        el.dot.className = 'dot waiting';
+        el.dot.className = 'dot error';
         renderStatus();
-        renderModeLabels();
-        state.running = false;
-        backToWaiting();
       });
     });
-  });
-
-  // Start jest w pełni automatyczny (patrz beginCountdown / updateReadyState) —
-  // przycisk btnStart pozostaje w DOM ukryty, na wypadek gdyby był kiedyś potrzebny.
-
-  // ---- Gra: Pong ----
-  const ctx = el.canvas.getContext('2d');
-  const W = 640, H = 480;
-  el.canvas.width = W; el.canvas.height = H;
-
-  const state = {
-    mode: '1p',
-    speedMult: 1.0, cpuLevel: 0.75,
-    youY: H/2, cpuY: H/2, paddleH: 90, paddleW: 12,
-    ballX: W/2, ballY: H/2, ballVX: 0, ballVY: 0,
-    youScore: 0, cpuScore: 0, running: false
-  };
-
-  function resetBall(dir){
-    state.ballX = W/2; state.ballY = H/2;
-    const angle = (Math.random()*0.6 - 0.3);
-    const d = dir || (Math.random() < 0.5 ? -1 : 1);
-    const base = 6.5 * state.speedMult;
-    state.ballVX = d * base * Math.cos(angle);
-    state.ballVY = base * Math.sin(angle);
-  }
-
-  function updateYouPaddle(){
-    const paddleRange = H - state.paddleH;
-    const spd = 11;
-    if (inputUp) state.youY -= spd;
-    if (inputDown) state.youY += spd;
-    state.youY = Math.max(0, Math.min(paddleRange, state.youY));
-  }
-
-  function updatePlayer2Paddle(){
-    const paddleRange = H - state.paddleH;
-    const spd = 11;
-    if (inputUp2) state.cpuY -= spd;
-    if (inputDown2) state.cpuY += spd;
-    state.cpuY = Math.max(0, Math.min(paddleRange, state.cpuY));
-  }
-
-  function updateCpuPaddle(){
-    const center = state.cpuY + state.paddleH/2;
-    const targetY = state.ballY;
-    const speed = 4.2 * state.cpuLevel + 1.2;
-    if (Math.abs(center - targetY) > 6){
-      state.cpuY += (center < targetY ? 1 : -1) * speed;
-    }
-    state.cpuY = Math.max(0, Math.min(H - state.paddleH, state.cpuY));
-  }
-
-  function updateBall(){
-    if (!state.running) return;
-    state.ballX += state.ballVX;
-    state.ballY += state.ballVY;
-
-    if (state.ballY <= 6 || state.ballY >= H-6){
-      state.ballVY *= -1;
-      state.ballY = Math.max(6, Math.min(H-6, state.ballY));
-    }
-    if (state.ballX <= 26 + state.paddleW && state.ballX > 20 &&
-        state.ballY > state.youY && state.ballY < state.youY + state.paddleH && state.ballVX < 0){
-      const rel = (state.ballY - (state.youY + state.paddleH/2)) / (state.paddleH/2);
-      const speed = Math.min(Math.hypot(state.ballVX,state.ballVY) * 1.06, 16 * state.speedMult);
-      const angle = rel * 0.9;
-      state.ballVX = Math.abs(speed * Math.cos(angle));
-      state.ballVY = speed * Math.sin(angle);
-      state.ballX = 26 + state.paddleW + 1;
-    }
-    if (state.ballX >= W-26-state.paddleW && state.ballX < W-20 &&
-        state.ballY > state.cpuY && state.ballY < state.cpuY + state.paddleH && state.ballVX > 0){
-      const rel = (state.ballY - (state.cpuY + state.paddleH/2)) / (state.paddleH/2);
-      const speed = Math.min(Math.hypot(state.ballVX,state.ballVY) * 1.06, 16 * state.speedMult);
-      const angle = rel * 0.9;
-      state.ballVX = -Math.abs(speed * Math.cos(angle));
-      state.ballVY = speed * Math.sin(angle);
-      state.ballX = W-26-state.paddleW - 1;
-    }
-
-    if (state.ballX < 0){
-      state.cpuScore++; el.scoreCpu.textContent = state.cpuScore;
-      if (!checkGameOver()) resetBall(1);
-    } else if (state.ballX > W){
-      state.youScore++; el.scoreYou.textContent = state.youScore;
-      if (!checkGameOver()) resetBall(-1);
-    }
-  }
-
-  function checkGameOver(){
-    if (state.youScore >= 7 || state.cpuScore >= 7){
-      state.running = false;
-      if (state.mode === '1p'){
-        overlayState = state.youScore > state.cpuScore ? 'won' : 'lost';
-      } else {
-        overlayState = state.youScore > state.cpuScore ? 'p1win' : 'p2win';
-      }
-      if (!document.getElementById('gameoverSub')){
-        const sub = document.createElement('div');
-        sub.id = 'gameoverSub';
-        sub.className = 'small';
-        el.overlay.insertBefore(sub, el.countdownSub);
-      }
-      renderOverlay();
-      el.overlay.classList.remove('hidden');
-      submitScoresToRanking();
-      cancelAutoRestart();
-      autoRestartTimer = setTimeout(() => {
-        if (isReady()){ beginCountdown(); } else { backToWaiting(); }
-      }, 4000);
-      return true;
-    }
-    return false;
-  }
-
-  // ---- Ranking (Firebase, przez wspólny scores.js) ----
-  function submitScoresToRanking(){
-    if (!window.ArcadeScores || !window.ArcadeScores.ready) return;
-    if (slots[1]) window.ArcadeScores.submit('pong', names[1], state.youScore, colors[1]);
-    if (state.mode === '2p' && slots[2]) window.ArcadeScores.submit('pong', names[2], state.cpuScore, colors[2]);
-  }
-  function initRankingPanel(){
-    const list = document.getElementById('rankList');
-    if (!window.ArcadeScores || !window.ArcadeScores.ready){
-      list.innerHTML = '<div class="rank-row empty">Ranking niedostępny — uzupełnij scores.js</div>';
-      return;
-    }
-    window.ArcadeScores.listenTop('pong', 5, (rows) => {
-      if (!rows.length){ list.innerHTML = '<div class="rank-row empty">Brak wyników jeszcze</div>'; return; }
-      list.innerHTML = rows.map(r => '<div class="rank-row"><span class="n">'+(r.name||'?')+'</span><span class="s">'+r.score+'</span></div>').join('');
+    peer.on('error', (err) => {
+      el.statusLabel.textContent = t('errorPrefix') + err.type;
+      el.dot.className = 'dot error';
     });
   }
-  initRankingPanel();
 
-  function draw(){
-    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg2').trim() || '#0A120D';
-    ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle = 'rgba(53,255,110,0.25)';
-    ctx.setLineDash([8,10]); ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
-    ctx.setLineDash([]);
-
-    const c1 = colors[1] || '#35FF6E';
-    const c2 = colors[2] || '#FFB000';
-    ctx.fillStyle = c1; ctx.shadowColor = c1; ctx.shadowBlur = 14;
-    ctx.fillRect(20, state.youY, state.paddleW, state.paddleH);
-
-    ctx.fillStyle = c2; ctx.shadowColor = c2; ctx.shadowBlur = 14;
-    ctx.fillRect(W-20-state.paddleW, state.cpuY, state.paddleW, state.paddleH);
-
-    ctx.fillStyle = '#EAFFF0'; ctx.shadowColor = '#EAFFF0'; ctx.shadowBlur = 10;
-    ctx.beginPath(); ctx.arc(state.ballX, state.ballY, 7, 0, Math.PI*2); ctx.fill();
-    ctx.shadowBlur = 0;
+  function bindPad(padEl, setter){
+    const start = (e) => { e.preventDefault(); setter(true); padEl.classList.add('active'); sendState(); };
+    const end = (e) => { e.preventDefault(); setter(false); padEl.classList.remove('active'); sendState(); };
+    padEl.addEventListener('touchstart', start, { passive:false });
+    padEl.addEventListener('touchend', end, { passive:false });
+    padEl.addEventListener('touchcancel', end, { passive:false });
+    padEl.addEventListener('mousedown', start);
+    padEl.addEventListener('mouseup', end);
+    padEl.addEventListener('mouseleave', end);
   }
+  bindPad(el.padUp, (v) => { up = v; });
+  bindPad(el.padDown, (v) => { down = v; });
 
-  function loop(){
-    if (state.running){
-      updateYouPaddle();
-      if (state.mode === '2p') updatePlayer2Paddle(); else updateCpuPaddle();
-      updateBall();
-    }
-    draw();
-    requestAnimationFrame(loop);
-  }
+  setInterval(sendState, 150);
+  window.addEventListener('beforeunload', () => { up = false; down = false; sendState(); });
 
-  state.youY = H/2 - state.paddleH/2;
-  state.cpuY = H/2 - state.paddleH/2;
   renderStaticTexts();
-  draw();
-  loop();
 })();
 </script>
 </body>
