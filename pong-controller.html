@@ -70,6 +70,10 @@
   }
   #inputName::placeholder{ color:var(--phosphor-dim); opacity:0.7; }
   #inputName:focus{ border-color:var(--phosphor); }
+
+  #colorRow{ display:flex; gap:8px; padding:0 16px 10px; flex-shrink:0; justify-content:center; }
+  .swatch{ width:30px; height:30px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); cursor:pointer; flex-shrink:0; transition:transform .1s, border-color .1s; }
+  .swatch.selected{ border-color:#fff; transform:scale(1.15); box-shadow:0 0 10px currentColor; }
 </style>
 </head>
 <body>
@@ -85,6 +89,7 @@
 
 <div class="status-row"><div class="dot connecting" id="dot"></div><span id="statusLabel">Łączenie z ekranem…</span></div>
 <div id="nameRow"><input type="text" id="inputName" maxlength="16" placeholder="Twoje imię (opcjonalnie)"></div>
+<div id="colorRow"></div>
 <div id="hint">Trzymaj wciśnięty przycisk, żeby przesuwać paletkę na ekranie. Puść, żeby zatrzymać.</div>
 
 <div id="pads">
@@ -99,7 +104,7 @@
   const el = {
     dot: $('dot'), statusLabel: $('statusLabel'), padUp: $('padUp'), padDown: $('padDown'),
     btnLang: $('btnLang'), btnTheme: $('btnTheme'), btnFullscreen: $('btnFullscreen'),
-    hint: $('hint'), inputName: $('inputName')
+    hint: $('hint'), inputName: $('inputName'), colorRow: $('colorRow')
   };
 
   const STR = {
@@ -164,9 +169,25 @@
   let conn = null;
   let up = false, down = false;
 
+  const COLORS = ['#35FF6E', '#FFB000', '#3FE0FF', '#FF5D5D', '#D45DFF', '#FFEC5D'];
+  let selectedColor = null;
+  COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'swatch';
+    sw.style.background = c;
+    sw.style.color = c;
+    sw.addEventListener('click', () => {
+      selectedColor = c;
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+      sendState();
+    });
+    el.colorRow.appendChild(sw);
+  });
+
   function sendState(){
     if (conn && conn.open){
-      conn.send({ type:'input', up, down, name: el.inputName.value.trim().slice(0, 16) });
+      conn.send({ type:'input', up, down, name: el.inputName.value.trim().slice(0, 16), color: selectedColor });
     }
   }
   function sendName(){ sendState(); }
