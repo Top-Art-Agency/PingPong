@@ -181,7 +181,11 @@
 
   const peer = new Peer();
   peer.on('open', (id) => {
-    const url = new URL('controller.html', window.location.href);
+    // wylicz katalog bieżącej strony niezależnie od tego, czy URL kończy się slashem
+    const dir = window.location.pathname.endsWith('/')
+      ? window.location.pathname
+      : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+    const url = new URL(dir + 'controller.html', window.location.origin);
     url.searchParams.set('code', id);
     new QRCode(el.qrCanvas, { text: url.toString(), width: 200, height: 200, colorDark:'#0A120D', colorLight:'#EAFFF0' });
   });
