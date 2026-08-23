@@ -25,6 +25,9 @@
   #nameRow{ padding:0 16px 8px; flex-shrink:0; }
   #inputName{ width:100%; font-family:'Space Mono', monospace; font-size:14px; background:rgba(53,255,110,0.04); color:var(--phosphor); border:1px solid var(--phosphor-dim); border-radius:6px; padding:10px 12px; outline:none; }
   #inputName::placeholder{ color:var(--phosphor-dim); opacity:0.7; }
+  #colorRow{ display:flex; gap:8px; padding:0 16px 8px; flex-shrink:0; justify-content:center; }
+  .swatch{ width:28px; height:28px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); cursor:pointer; flex-shrink:0; transition:transform .1s, border-color .1s; }
+  .swatch.selected{ border-color:#fff; transform:scale(1.15); box-shadow:0 0 10px currentColor; }
   #flapBtn{ flex:1; margin:8px 14px 18px; border:2px solid var(--phosphor-dim); border-radius:18px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; font-family:'Press Start 2P', monospace; font-size:clamp(18px,7vw,28px); color:var(--phosphor-dim); background:rgba(53,255,110,0.03); transition:background .06s,color .06s,border-color .06s; }
   #flapBtn.active{ color:var(--phosphor); border-color:var(--phosphor); background:rgba(53,255,110,0.18); box-shadow:0 0 30px rgba(53,255,110,0.25) inset; }
   #flapBtn .wing{ font-size:2.2em; }
@@ -41,13 +44,14 @@
 </header>
 <div class="status-row"><div class="dot connecting" id="dot"></div><span id="statusLabel">Łączenie z ekranem…</span></div>
 <div id="nameRow"><input type="text" id="inputName" maxlength="16" placeholder="Twoje imię (opcjonalnie)"></div>
+<div id="colorRow"></div>
 <div id="flapBtn"><span class="wing">🐤</span><span id="flapLabel">SKOK</span></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
   const el = { dot:$('dot'), statusLabel:$('statusLabel'), btnLang:$('btnLang'), btnTheme:$('btnTheme'),
-    btnFullscreen:$('btnFullscreen'), inputName:$('inputName'), flapBtn:$('flapBtn'), flapLabel:$('flapLabel') };
+    btnFullscreen:$('btnFullscreen'), inputName:$('inputName'), flapBtn:$('flapBtn'), flapLabel:$('flapLabel'), colorRow:$('colorRow') };
 
   const STR = { pl:{ connecting:'Łączenie z ekranem…', connected:'Połączono z ekranem', full:'Ekran jest już pełny — spróbuj później',
       disconnected:'Rozłączono — odśwież stronę', noCode:'Brak kodu ekranu w linku — zeskanuj QR jeszcze raz',
@@ -67,11 +71,25 @@
   const hostId = params.get('code');
   let conn = null;
 
-  function sendFlap(){ if (conn && conn.open) conn.send({ type:'flap', name: el.inputName.value.trim().slice(0,16) }); }
+  const COLORS = ['#35FF6E', '#FFB000', '#3FE0FF', '#FF5D5D', '#D45DFF', '#FFEC5D'];
+  let selectedColor = null;
+  COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'swatch'; sw.style.background = c; sw.style.color = c;
+    sw.addEventListener('click', () => {
+      selectedColor = c;
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+      if (conn && conn.open) conn.send({ type:'name-only', name: el.inputName.value.trim().slice(0,16), color: selectedColor });
+    });
+    el.colorRow.appendChild(sw);
+  });
+
+  function sendFlap(){ if (conn && conn.open) conn.send({ type:'flap', name: el.inputName.value.trim().slice(0,16), color: selectedColor }); }
   let nameDebounce=null;
   el.inputName.addEventListener('input', () => {
     clearTimeout(nameDebounce);
-    nameDebounce = setTimeout(() => { if (conn && conn.open) conn.send({ type:'name-only', name: el.inputName.value.trim().slice(0,16) }); }, 300);
+    nameDebounce = setTimeout(() => { if (conn && conn.open) conn.send({ type:'name-only', name: el.inputName.value.trim().slice(0,16), color: selectedColor }); }, 300);
   });
 
   if (!hostId){ statusState='noCode'; el.dot.className='dot error'; }
