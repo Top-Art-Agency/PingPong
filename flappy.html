@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FLAPPY — Ekran</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
+  :root{ --phosphor:#35FF6E; --phosphor-dim:#1B7A38; --bg:#050807; --bg2:#0A120D; --amber:#FFB000; --line:rgba(53,255,110,0.18); --scan-op:0.18; --vig-op:0.65; }
+  body.light{ --phosphor:#12833F; --phosphor-dim:#6E9E82; --bg:#EEF3EE; --bg2:#FFFFFF; --amber:#B36A00; --line:rgba(18,131,63,0.18); --scan-op:0.03; --vig-op:0.06; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{ background:var(--bg); color:var(--phosphor); font-family:'Space Mono', monospace; min-height:100vh; display:flex; flex-direction:column; align-items:center; overflow-x:hidden; position:relative; transition:background .2s; }
+  body::before{ content:""; position:fixed; inset:0; background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,var(--scan-op)) 3px, rgba(0,0,0,var(--scan-op)) 3px); pointer-events:none; z-index:50; mix-blend-mode:multiply; }
+  body::after{ content:""; position:fixed; inset:0; background:radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,var(--vig-op)) 100%); pointer-events:none; z-index:51; }
+  header{ width:100%; max-width:920px; padding:22px 20px 8px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .logo{ font-family:'Press Start 2P', monospace; font-size:22px; letter-spacing:2px; text-shadow:0 0 6px var(--phosphor), 0 0 18px rgba(53,255,110,0.5); }
+  .logo span{ color:var(--amber); text-shadow:0 0 6px var(--amber), 0 0 18px rgba(255,176,0,0.5); }
+  .subtitle{ font-size:12px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:6px; }
+  .toolbar{ display:flex; gap:8px; }
+  .icon-btn{ font-family:'Space Mono', monospace; font-size:11px; background:transparent; color:var(--phosphor); border:1px solid var(--phosphor-dim); padding:8px 10px; border-radius:4px; cursor:pointer; min-width:38px; }
+  .icon-btn:hover{ background:rgba(53,255,110,0.08); border-color:var(--phosphor); }
+  main{ width:100%; max-width:920px; padding:16px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .scoreboard{ font-family:'Press Start 2P', monospace; font-size:clamp(28px, 6vw, 46px); text-shadow:0 0 10px currentColor; color:var(--phosphor); }
+  #bestRow{ font-size:11px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:2px; text-align:center; }
+  #gameWrap{ position:relative; width:100%; max-width:520px; aspect-ratio:3/4; border:2px solid var(--phosphor-dim); border-radius:6px; box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06); background:linear-gradient(var(--bg2), var(--bg2)) padding-box; overflow:hidden; }
+  canvas{ display:block; width:100%; height:100%; }
+  #overlayMsg{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; background:rgba(5,8,7,0.92); font-family:'Press Start 2P', monospace; font-size:14px; letter-spacing:1px; padding:24px; z-index:5; }
+  body.light #overlayMsg{ background:rgba(238,243,238,0.95); }
+  #overlayMsg .small{ font-family:'Space Mono', monospace; font-size:12px; color:var(--phosphor-dim); letter-spacing:0.5px; max-width:380px; line-height:1.7; }
+  #overlayMsg.hidden{ display:none; }
+  #overlayMsg.countdown-mode #qrBox, #overlayMsg.countdown-mode .status-row, #overlayMsg.countdown-mode #playerList{ display:none; }
+  #overlayTitle.countdown-number{ font-size:64px; }
+  #qrBox{ background:#EAFFF0; padding:14px; border-radius:8px; box-shadow:0 0 24px rgba(53,255,110,0.35); }
+  .status-row{ display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:0.5px; }
+  .dot{ width:9px; height:9px; border-radius:50%; background:#555; flex-shrink:0; }
+  .dot.waiting{ background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite; }
+  .dot.connected{ background:var(--phosphor); box-shadow:0 0 8px var(--phosphor); }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+  #playerList{ font-size:10px; color:var(--phosphor-dim); max-width:380px; line-height:1.8; }
+  .controls-panel{ width:100%; max-width:520px; display:grid; grid-template-columns:1fr; gap:14px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); }
+  .ctrl-group label{ font-size:10px; letter-spacing:0.5px; color:var(--phosphor-dim); }
+  .seg-row{ display:flex; gap:6px; }
+  .seg-btn{ flex:1; font-size:9px; padding:8px 4px; border:1px solid var(--phosphor-dim); color:var(--phosphor-dim); background:transparent; border-radius:4px; }
+  .seg-btn.active{ color:var(--phosphor); border-color:var(--phosphor); box-shadow:0 0 8px rgba(53,255,110,0.25); }
+  footer{ width:100%; max-width:520px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
+  footer b{ color:var(--phosphor); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo"><span>FLAPPY</span></div>
+    <div class="subtitle" id="txtSubtitle">zeskanuj kod QR telefonem, żeby zostać kontrolerem</div>
+  </div>
+  <div class="toolbar">
+    <button class="icon-btn" id="btnLang" title="Language">EN</button>
+    <button class="icon-btn" id="btnTheme" title="Theme">🌙</button>
+    <button class="icon-btn" id="btnFullscreen" title="Fullscreen">⛶</button>
+  </div>
+</header>
+<main>
+  <div>
+    <div class="scoreboard" id="scoreBoard">0</div>
+    <div id="bestRow">NAJLEPSZY: 0</div>
+  </div>
+  <div id="gameWrap">
+    <canvas id="game"></canvas>
+    <div id="overlayMsg">
+      <div id="overlayTitle">ZESKANUJ, ŻEBY DOŁĄCZYĆ</div>
+      <div id="qrBox"><div id="qrCanvas"></div></div>
+      <div class="status-row"><div class="dot waiting" id="dot"></div><span id="statusLabel">Czekam na telefon…</span></div>
+      <div id="playerList"></div>
+      <div id="countdownSub" class="small" style="display:none;"></div>
+    </div>
+  </div>
+  <div class="controls-panel">
+    <div class="ctrl-group">
+      <label id="lblMode">Tryb gry</label>
+      <div class="seg-row">
+        <button class="seg-btn active" id="modeBtn1p">1 GRACZ</button>
+        <button class="seg-btn" id="modeBtnMulti">WIELU GRACZY</button>
+      </div>
+    </div>
+  </div>
+  <footer id="footerText">Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.</footer>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const el = {
+    overlay:$('overlayMsg'), overlayTitle:$('overlayTitle'), dot:$('dot'), statusLabel:$('statusLabel'),
+    qrCanvas:$('qrCanvas'), scoreBoard:$('scoreBoard'), bestRow:$('bestRow'), canvas:$('game'),
+    btnLang:$('btnLang'), btnTheme:$('btnTheme'), btnFullscreen:$('btnFullscreen'), txtSubtitle:$('txtSubtitle'),
+    lblMode:$('lblMode'), modeBtn1p:$('modeBtn1p'), modeBtnMulti:$('modeBtnMulti'), footerText:$('footerText'),
+    playerList:$('playerList'), countdownSub:$('countdownSub')
+  };
+
+  const STR = { pl:{
+      subtitle:'zeskanuj kod QR telefonem, żeby zostać kontrolerem', overlayQrTitle:'ZESKANUJ, ŻEBY DOŁĄCZYĆ',
+      waitingOne:'Czekam na telefon…', connectedOne:'Telefon połączony', disconnected:'Telefon rozłączony — odśwież stronę',
+      lobbyJoin:'Dołącz teraz — runda zaczyna się za chwilę', gameOver:'KONIEC RUNDY', winner:'WYGRYWA',
+      best:'NAJLEPSZY', modeLabel:'Tryb gry', mode1p:'1 GRACZ', modeMulti:'WIELU GRACZY', startingIn:'Zaczynamy za...',
+      footer1p:'Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.',
+      footerMulti:'Każdy telefon steruje swoim ptakiem na tej samej planszy. Dołącz skanując kod QR — runda startuje po krótkim czasie na dołączanie. Kto przetrwa najdłużej, wygrywa.'
+    }, en:{
+      subtitle:'scan the QR code with your phone to become a controller', overlayQrTitle:'SCAN TO JOIN',
+      waitingOne:'Waiting for phone…', connectedOne:'Phone connected', disconnected:'Phone disconnected — refresh the page',
+      lobbyJoin:'Join now — round starts soon', gameOver:'ROUND OVER', winner:'WINS',
+      best:'BEST', modeLabel:'Game mode', mode1p:'1 PLAYER', modeMulti:'MULTIPLAYER', startingIn:'Starting in...',
+      footer1p:'Tap to make the bird fly up. Avoid the pipes. Score a point for every pipe pair passed.',
+      footerMulti:'Each phone controls its own bird on the same board. Join by scanning the QR — the round starts after a short join window. Whoever survives longest wins.'
+    } };
+  let lang='pl'; function t(k){ return STR[lang][k]; }
+
+  let mode='1p';
+  let overlayState='qr'; // qr | lobby | countdown | result
+  let countdownTimer=null, lobbyTimer=null, resultTimer=null, countdownN=3;
+  let bestScore=0;
+
+  // 1p: single slot
+  let soloConn=null, soloName=null;
+  // multi: unlimited
+  const players = new Map(); // connId -> {conn, name, bird}
+
+  function cancelTimers(){
+    if(countdownTimer){clearInterval(countdownTimer); countdownTimer=null;}
+    if(lobbyTimer){clearInterval(lobbyTimer); lobbyTimer=null;}
+    if(resultTimer){clearTimeout(resultTimer); resultTimer=null;}
+  }
+
+  function renderOverlay(){
+    el.overlay.classList.toggle('countdown-mode', overlayState==='countdown');
+    el.overlayTitle.classList.toggle('countdown-number', overlayState==='countdown');
+    el.countdownSub.style.display = overlayState==='countdown' ? '' : 'none';
+    el.playerList.style.display = (overlayState==='lobby') ? '' : 'none';
+    if (overlayState==='qr'){ el.overlayTitle.textContent = t('overlayQrTitle'); el.statusLabel.textContent = t('waitingOne'); el.dot.className='dot waiting'; }
+    else if (overlayState==='lobby'){
+      el.overlayTitle.textContent = t('lobbyJoin');
+      el.dot.className='dot connected';
+      el.statusLabel.textContent = players.size + ' 🐤';
+      el.playerList.textContent = Array.from(players.values()).map(p=>p.name||'?').join(' · ');
+    }
+    else if (overlayState==='countdown'){ el.overlayTitle.textContent = String(countdownN); el.countdownSub.textContent = t('startingIn'); }
+    else if (overlayState==='result'){
+      const sub = document.getElementById('gameoverSub');
+      if (sub) sub.textContent = '';
+    }
+  }
+  function renderStaticTexts(){
+    el.txtSubtitle.textContent = t('subtitle');
+    el.lblMode.textContent = t('modeLabel');
+    el.modeBtn1p.textContent = t('mode1p');
+    el.modeBtnMulti.textContent = t('modeMulti');
+    el.footerText.textContent = mode==='multi' ? t('footerMulti') : t('footer1p');
+    el.bestRow.textContent = t('best') + ': ' + bestScore;
+    renderOverlay();
+  }
+  el.btnLang.addEventListener('click', () => { lang=lang==='pl'?'en':'pl'; el.btnLang.textContent=lang==='pl'?'EN':'PL'; renderStaticTexts(); });
+  el.btnTheme.addEventListener('click', () => { document.body.classList.toggle('light'); el.btnTheme.textContent = document.body.classList.contains('light')?'☀️':'🌙'; });
+  el.btnFullscreen.addEventListener('click', () => { if(!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(()=>{});} else { document.exitFullscreen().catch(()=>{});} });
+
+  function setMode(m){
+    mode=m; el.modeBtn1p.classList.toggle('active', m==='1p'); el.modeBtnMulti.classList.toggle('active', m==='multi');
+    el.footerText.textContent = m==='multi' ? t('footerMulti') : t('footer1p');
+    cancelTimers(); overlayState='qr'; renderOverlay();
+  }
+  el.modeBtn1p.addEventListener('click', ()=>setMode('1p'));
+  el.modeBtnMulti.addEventListener('click', ()=>setMode('multi'));
+
+  // ---- WebRTC ----
+  const peer = new Peer();
+  peer.on('open', (id) => {
+    const dir = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')+1);
+    const url = new URL(dir + 'flappy-controller.html', window.location.origin);
+    url.searchParams.set('code', id);
+    new QRCode(el.qrCanvas, { text:url.toString(), width:200, height:200, colorDark:'#0A120D', colorLight:'#EAFFF0' });
+  });
+  peer.on('error', (err) => { el.statusLabel.textContent = 'Error: '+err.type; });
+
+  peer.on('connection', (conn) => {
+    conn.on('open', () => {
+      if (mode==='1p'){
+        if (soloConn){ conn.send({type:'full'}); setTimeout(()=>conn.close(),300); return; }
+        soloConn = conn;
+        conn.on('data', (data) => {
+          if (!data) return;
+          if (data.type==='flap' && running) flap();
+          if (data.name !== undefined) soloName = data.name ? data.name.trim().slice(0,16) : null;
+        });
+        conn.on('close', () => { soloConn=null; soloName=null; running=false; overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden'); });
+        el.dot.className='dot connected'; el.statusLabel.textContent = t('connectedOne'); el.overlay.classList.remove('hidden');
+        if (overlayState==='qr'){ beginLobbySolo(); }
+      } else {
+        const id = conn.peer;
+        players.set(id, { conn, name:null, bird:null });
+        conn.on('data', (data) => {
+          if (!data) return;
+          if (data.name !== undefined){ const p=players.get(id); if(p) p.name = data.name ? data.name.trim().slice(0,16) : null; if(overlayState==='lobby') renderOverlay(); }
+          if (data.type==='flap'){ const p=players.get(id); if (p && p.bird && p.bird.alive) flapBird(p.bird); }
+        });
+        conn.on('close', () => {
+          players.delete(id);
+          if (overlayState==='lobby' && players.size===0){ cancelTimers(); overlayState='qr'; renderOverlay(); }
+        });
+        if (overlayState==='qr'){ beginLobbyMulti(); } else { renderOverlay(); }
+      }
+    });
+  });
+
+  function beginLobbySolo(){
+    cancelTimers(); overlayState='countdown'; countdownN=3; el.overlay.classList.remove('hidden'); renderOverlay();
+    countdownTimer = setInterval(() => {
+      countdownN--;
+      if (countdownN<=0){ cancelTimers(); startSolo(); } else { renderOverlay(); }
+    }, 1000);
+  }
+  function beginLobbyMulti(){
+    cancelTimers(); overlayState='lobby'; el.overlay.classList.remove('hidden'); renderOverlay();
+    let secs=8;
+    lobbyTimer = setInterval(() => {
+      secs--;
+      el.overlayTitle.textContent = t('lobbyJoin') + ' (' + secs + ')';
+      if (secs<=0){
+        clearInterval(lobbyTimer); lobbyTimer=null;
+        overlayState='countdown'; countdownN=3; renderOverlay();
+        countdownTimer = setInterval(() => {
+          countdownN--;
+          if (countdownN<=0){ cancelTimers(); startMulti(); } else { renderOverlay(); }
+        }, 1000);
+      }
+    }, 1000);
+  }
+
+  // ---- Flappy physics ----
+  const ctx = el.canvas.getContext('2d');
+  const W=390, H=520;
+  el.canvas.width=W; el.canvas.height=H;
+  const GRAV=0.35, FLAP_V=-6.5, PIPE_W=52, PIPE_GAP=155, PIPE_SPEED=2.6, PIPE_SPACING=210;
+  let running=false, pipes=[], distSinceSpawn=0;
+  let solo=null; // {y,vy,alive,score,x}
+
+  function newBird(){ return { x:80, y:H/2, vy:0, alive:true, score:0 }; }
+  function flap(){ if (solo && solo.alive) solo.vy = FLAP_V; }
+  function flapBird(b){ b.vy = FLAP_V; }
+
+  function spawnPipe(){
+    const margin=50;
+    const gapY = margin + Math.random()*(H-2*margin-PIPE_GAP);
+    pipes.push({ x:W+20, gapY, passed:false });
+  }
+  function startSolo(){
+    el.overlay.classList.add('hidden');
+    solo = newBird(); pipes=[]; distSinceSpawn=0; spawnPipe(); running=true;
+    el.scoreBoard.textContent='0';
+  }
+  function startMulti(){
+    el.overlay.classList.add('hidden');
+    pipes=[]; distSinceSpawn=0; spawnPipe(); running=true;
+    players.forEach(p => { p.bird = newBird(); });
+    el.scoreBoard.textContent='0';
+  }
+
+  function birdHitsPipe(b, p){
+    if (b.x+12 < p.x || b.x-12 > p.x+PIPE_W) return false;
+    if (b.y-12 < p.gapY || b.y+12 > p.gapY+PIPE_GAP) return true;
+    return false;
+  }
+
+  function updatePhysics(){
+    if (!running) return;
+    distSinceSpawn += PIPE_SPEED;
+    if (distSinceSpawn >= PIPE_SPACING){ distSinceSpawn=0; spawnPipe(); }
+    pipes.forEach(p => p.x -= PIPE_SPEED);
+    while (pipes.length && pipes[0].x < -PIPE_W-20) pipes.shift();
+
+    if (mode==='1p'){
+      if (solo && solo.alive){
+        solo.vy += GRAV; solo.y += solo.vy;
+        if (solo.y < 10 || solo.y > H-10) solo.alive=false;
+        pipes.forEach(p => {
+          if (!p.passed && p.x+PIPE_W < solo.x){ p.passed=true; solo.score++; }
+          if (birdHitsPipe(solo, p)) solo.alive=false;
+        });
+        el.scoreBoard.textContent = solo.score;
+        if (!solo.alive) endSolo();
+      }
+    } else {
+      let anyAlive=false;
+      players.forEach(p => {
+        const b=p.bird; if (!b || !b.alive) return;
+        anyAlive=true;
+        b.vy += GRAV; b.y += b.vy;
+        if (b.y<10 || b.y>H-10) b.alive=false;
+        pipes.forEach(pipe => {
+          if (!pipe.passed_multi_ && false) {}
+          if (birdHitsPipe(b, pipe)) b.alive=false;
+        });
+      });
+      pipes.forEach(pipe => {
+        if (!pipe.passed){
+          let anyPassed=false;
+          players.forEach(p => { if (p.bird && p.bird.alive && pipe.x+PIPE_W < p.bird.x) anyPassed=true; });
+          if (anyPassed){ pipe.passed=true; players.forEach(p => { if (p.bird && p.bird.alive) p.bird.score++; }); }
+        }
+      });
+      const maxScore = Math.max(0, ...Array.from(players.values()).map(p=>p.bird?p.bird.score:0));
+      el.scoreBoard.textContent = maxScore;
+      if (!anyAlive && players.size>0) endMulti();
+    }
+  }
+
+  function endSolo(){
+    running=false;
+    if (solo.score > bestScore){ bestScore = solo.score; el.bestRow.textContent = t('best')+': '+bestScore; }
+    overlayState='result';
+    el.overlayTitle.textContent = t('gameOver');
+    if (!document.getElementById('gameoverSub')){
+      const sub=document.createElement('div'); sub.id='gameoverSub'; sub.className='small';
+      el.overlay.insertBefore(sub, el.countdownSub);
+    }
+    document.getElementById('gameoverSub').textContent = (soloName?soloName.toUpperCase()+' · ':'') + 'SCORE: ' + solo.score;
+    el.overlay.classList.remove('hidden');
+    resultTimer = setTimeout(() => { if (soloConn){ beginLobbySolo(); } else { overlayState='qr'; renderOverlay(); } }, 4000);
+  }
+  function endMulti(){
+    running=false;
+    overlayState='result';
+    const arr = Array.from(players.values()).map(p => ({ name: p.name || '?', score: p.bird?p.bird.score:0 }));
+    arr.sort((a,b)=>b.score-a.score);
+    const top = arr.length ? arr[0].score : 0;
+    const winners = arr.filter(a=>a.score===top).map(a=>a.name.toUpperCase());
+    el.overlayTitle.textContent = winners.join(' & ') + ' ' + t('winner');
+    if (!document.getElementById('gameoverSub')){
+      const sub=document.createElement('div'); sub.id='gameoverSub'; sub.className='small';
+      el.overlay.insertBefore(sub, el.countdownSub);
+    }
+    document.getElementById('gameoverSub').textContent = arr.map(a=>a.name+': '+a.score).join(' · ');
+    el.overlay.classList.remove('hidden');
+    resultTimer = setTimeout(() => { if (players.size>0){ beginLobbyMulti(); } else { overlayState='qr'; renderOverlay(); } }, 5000);
+  }
+
+  function draw(){
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg2').trim() || '#0A120D';
+    ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='rgba(53,255,110,0.35)'; ctx.lineWidth=3; ctx.shadowColor='#35FF6E'; ctx.shadowBlur=6;
+    pipes.forEach(p => {
+      ctx.strokeRect(p.x, 0, PIPE_W, p.gapY);
+      ctx.strokeRect(p.x, p.gapY+PIPE_GAP, PIPE_W, H-(p.gapY+PIPE_GAP));
+    });
+    ctx.shadowBlur=0;
+    if (mode==='1p' && solo){
+      ctx.fillStyle = solo.alive ? '#35FF6E' : 'rgba(120,120,120,0.6)';
+      ctx.shadowColor='#35FF6E'; ctx.shadowBlur = solo.alive?12:0;
+      ctx.beginPath(); ctx.arc(solo.x, solo.y, 12, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur=0;
+    } else if (mode==='multi'){
+      const colors=['#35FF6E','#FFB000','#3FE0FF','#FF5D5D','#D45DFF','#FFEC5D'];
+      let i=0;
+      players.forEach(p => {
+        const b=p.bird; if (!b) return;
+        const color = colors[i%colors.length]; i++;
+        ctx.fillStyle = b.alive ? color : 'rgba(120,120,120,0.4)';
+        ctx.shadowColor=color; ctx.shadowBlur = b.alive?10:0;
+        ctx.beginPath(); ctx.arc(b.x, b.y, 11, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur=0;
+      });
+    }
+  }
+  function loop(){ updatePhysics(); draw(); requestAnimationFrame(loop); }
+  draw(); requestAnimationFrame(loop);
+
+  renderStaticTexts();
+})();
+</script>
+</body>
+</html>
