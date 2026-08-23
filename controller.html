@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>PONG — Kontroler</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
+
+  :root{
+    --phosphor: #35FF6E;
+    --phosphor-dim: #1B7A38;
+    --bg: #050807;
+    --amber: #FFB000;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  html,body{ height:100%; overscroll-behavior:none; }
+  body{
+    background:var(--bg); color:var(--phosphor); font-family:'Space Mono', monospace;
+    display:flex; flex-direction:column; touch-action:none; overflow:hidden;
+  }
+
+  header{ padding:16px 20px 10px; text-align:center; flex-shrink:0; }
+  .logo{ font-family:'Press Start 2P', monospace; font-size:15px; letter-spacing:2px; text-shadow:0 0 6px var(--phosphor); }
+  .logo span{ color:var(--amber); text-shadow:0 0 6px var(--amber); }
+
+  .status-row{ display:flex; align-items:center; justify-content:center; gap:8px; font-size:10px; letter-spacing:0.5px; margin-top:6px; color:var(--phosphor-dim); }
+  .dot{ width:8px; height:8px; border-radius:50%; background:#555; flex-shrink:0; }
+  .dot.connecting{ background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite; }
+  .dot.connected{ background:var(--phosphor); box-shadow:0 0 8px var(--phosphor); }
+  .dot.error{ background:#FF5D5D; box-shadow:0 0 8px #FF5D5D; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  #pads{ flex:1; display:flex; flex-direction:column; gap:10px; padding:10px 14px 18px; min-height:0; }
+
+  .pad{
+    flex:1;
+    border:2px solid var(--phosphor-dim);
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(20px, 8vw, 34px);
+    letter-spacing:2px;
+    color:var(--phosphor-dim);
+    background:rgba(53,255,110,0.03);
+    transition:background .08s, color .08s, border-color .08s;
+    min-height:0;
+  }
+  .pad.active{
+    color:var(--phosphor);
+    border-color:var(--phosphor);
+    background:rgba(53,255,110,0.16);
+    box-shadow:0 0 30px rgba(53,255,110,0.25) inset;
+  }
+  .pad .arrow{ font-size:1.6em; margin-right:14px; }
+
+  #hint{
+    text-align:center; font-size:11px; color:var(--phosphor-dim);
+    padding:0 20px 16px; line-height:1.6; flex-shrink:0;
+  }
+  #hint b{ color:var(--phosphor); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>PONG</span></div>
+  <div class="status-row"><div class="dot connecting" id="dot"></div><span id="statusLabel">Łączenie z ekranem…</span></div>
+</header>
+
+<div id="hint">Trzymaj wciśnięty przycisk, żeby przesuwać paletkę na ekranie. Puść, żeby zatrzymać.</div>
+
+<div id="pads">
+  <div class="pad" id="padUp" data-dir="up"><span class="arrow">▲</span>GÓRA</div>
+  <div class="pad" id="padDown" data-dir="down"><span class="arrow">▼</span>DÓŁ</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const el = { dot: $('dot'), statusLabel: $('statusLabel'), padUp: $('padUp'), padDown: $('padDown') };
+
+  const params = new URLSearchParams(window.location.search);
+  const hostId = params.get('code');
+
+  let conn = null;
+  let up = false, down = false;
+
+  function setStatus(kind, label){
+    el.dot.className = 'dot' + (kind ? ' ' + kind : '');
+    el.statusLabel.textContent = label;
+  }
+
+  function sendState(){
+    if (conn && conn.open){
+      conn.send({ type:'input', up, down });
+    }
+  }
+
+  if (!hostId){
+    setStatus('error', 'Brak kodu ekranu w linku — zeskanuj QR jeszcze raz');
+  } else {
+    setStatus('connecting', 'Łączenie z ekranem…');
+    const peer = new Peer();
+    peer.on('open', () => {
+      conn = peer.connect(hostId, { reliable:false });
+      conn.on('open', () => setStatus('connected', 'Połączono z ekranem'));
+      conn.on('close', () => setStatus('error', 'Rozłączono — odśwież stronę'));
+    });
+    peer.on('error', (err) => setStatus('error', 'Błąd: ' + err.type));
+  }
+
+  function bindPad(padEl, setter){
+    const start = (e) => { e.preventDefault(); setter(true); padEl.classList.add('active'); sendState(); };
+    const end = (e) => { e.preventDefault(); setter(false); padEl.classList.remove('active'); sendState(); };
+    padEl.addEventListener('touchstart', start, { passive:false });
+    padEl.addEventListener('touchend', end, { passive:false });
+    padEl.addEventListener('touchcancel', end, { passive:false });
+    padEl.addEventListener('mousedown', start);
+    padEl.addEventListener('mouseup', end);
+    padEl.addEventListener('mouseleave', end);
+  }
+  bindPad(el.padUp, (v) => { up = v; });
+  bindPad(el.padDown, (v) => { down = v; });
+
+  // wysyłaj stan cyklicznie na wypadek zgubionej wiadomości (kanał unreliable)
+  setInterval(sendState, 150);
+
+  window.addEventListener('beforeunload', () => { up = false; down = false; sendState(); });
+})();
+</script>
+</body>
+</html>
