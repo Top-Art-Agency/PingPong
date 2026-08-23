@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>PONG — Kontroler</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
+
+  :root{
+    --phosphor: #35FF6E;
+    --phosphor-dim: #1B7A38;
+    --bg: #050807;
+    --amber: #FFB000;
+  }
+  body.light{
+    --phosphor: #12833F;
+    --phosphor-dim: #6E9E82;
+    --bg: #EEF3EE;
+    --amber: #B36A00;
+  }
+  body.player2{ --phosphor: var(--amber); --phosphor-dim: color-mix(in srgb, var(--amber) 45%, transparent); }
+
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  html,body{ height:100%; overscroll-behavior:none; }
+  body{
+    background:var(--bg); color:var(--phosphor); font-family:'Space Mono', monospace;
+    display:flex; flex-direction:column; touch-action:none; overflow:hidden; transition:background .2s;
+  }
+
+  header{ padding:14px 16px 8px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+  .logo{ font-family:'Press Start 2P', monospace; font-size:15px; letter-spacing:2px; text-shadow:0 0 6px var(--phosphor); }
+  .logo span{ color:var(--amber); text-shadow:0 0 6px var(--amber); }
+  body.player2 .logo span{ color:var(--phosphor); text-shadow:0 0 6px var(--phosphor); }
+
+  .toolbar{ display:flex; gap:6px; }
+  .icon-btn{
+    font-family:'Space Mono', monospace; font-size:10px; letter-spacing:0.5px;
+    background:transparent; color:var(--phosphor); border:1px solid var(--phosphor-dim);
+    padding:6px 8px; border-radius:4px; cursor:pointer; min-width:32px;
+  }
+
+  .status-row{ display:flex; align-items:center; justify-content:center; gap:8px; font-size:10px; letter-spacing:0.5px; margin:0 0 4px; color:var(--phosphor-dim); flex-shrink:0; }
+  .dot{ width:8px; height:8px; border-radius:50%; background:#555; flex-shrink:0; }
+  .dot.connecting{ background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite; }
+  .dot.connected{ background:var(--phosphor); box-shadow:0 0 8px var(--phosphor); }
+  .dot.error{ background:#FF5D5D; box-shadow:0 0 8px #FF5D5D; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  #pads{ flex:1; display:flex; flex-direction:column; gap:10px; padding:10px 14px 18px; min-height:0; }
+
+  .pad{
+    flex:1; border:2px solid var(--phosphor-dim); border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Press Start 2P', monospace; font-size:clamp(20px, 8vw, 34px); letter-spacing:2px;
+    color:var(--phosphor-dim); background:rgba(53,255,110,0.03);
+    transition:background .08s, color .08s, border-color .08s; min-height:0;
+  }
+  .pad.active{ color:var(--phosphor); border-color:var(--phosphor); background:rgba(53,255,110,0.16); box-shadow:0 0 30px rgba(53,255,110,0.25) inset; }
+  .pad .arrow{ font-size:1.6em; margin-right:14px; }
+
+  #hint{ text-align:center; font-size:11px; color:var(--phosphor-dim); padding:0 20px 10px; line-height:1.6; flex-shrink:0; }
+  #hint b{ color:var(--phosphor); }
+
+  #nameRow{ padding:0 16px 10px; flex-shrink:0; }
+  #inputName{
+    width:100%; font-family:'Space Mono', monospace; font-size:14px; letter-spacing:0.5px;
+    background:rgba(53,255,110,0.04); color:var(--phosphor); border:1px solid var(--phosphor-dim);
+    border-radius:6px; padding:10px 12px; outline:none;
+  }
+  #inputName::placeholder{ color:var(--phosphor-dim); opacity:0.7; }
+  #inputName:focus{ border-color:var(--phosphor); }
+
+  #colorRow{ display:flex; gap:8px; padding:0 16px 10px; flex-shrink:0; justify-content:center; }
+  .swatch{ width:30px; height:30px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); cursor:pointer; flex-shrink:0; transition:transform .1s, border-color .1s; }
+  .swatch.selected{ border-color:#fff; transform:scale(1.15); box-shadow:0 0 10px currentColor; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>PONG</span></div>
+  <div class="toolbar">
+    <button class="icon-btn" id="btnLang" title="Language">EN</button>
+    <button class="icon-btn" id="btnTheme" title="Theme">🌙</button>
+    <button class="icon-btn" id="btnFullscreen" title="Fullscreen">⛶</button>
+  </div>
+</header>
+
+<div class="status-row"><div class="dot connecting" id="dot"></div><span id="statusLabel">Łączenie z ekranem…</span></div>
+<div id="nameRow"><input type="text" id="inputName" maxlength="16" placeholder="Twoje imię (opcjonalnie)"></div>
+<div id="colorRow"></div>
+<div id="hint">Trzymaj wciśnięty przycisk, żeby przesuwać paletkę na ekranie. Puść, żeby zatrzymać.</div>
+
+<div id="pads">
+  <div class="pad" id="padUp" data-dir="up"><span class="arrow">▲</span>GÓRA</div>
+  <div class="pad" id="padDown" data-dir="down"><span class="arrow">▼</span>DÓŁ</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const el = {
+    dot: $('dot'), statusLabel: $('statusLabel'), padUp: $('padUp'), padDown: $('padDown'),
+    btnLang: $('btnLang'), btnTheme: $('btnTheme'), btnFullscreen: $('btnFullscreen'),
+    hint: $('hint'), inputName: $('inputName'), colorRow: $('colorRow')
+  };
+
+  const STR = {
+    pl: {
+      connecting: 'Łączenie z ekranem…',
+      connected: 'Połączono z ekranem',
+      connectedP1: 'Połączono · Gracz 1 (lewo)',
+      connectedP2: 'Połączono · Gracz 2 (prawo)',
+      full: 'Ekran jest już pełny — spróbuj później',
+      disconnected: 'Rozłączono — odśwież stronę',
+      noCode: 'Brak kodu ekranu w linku — zeskanuj QR jeszcze raz',
+      errorPrefix: 'Błąd: ',
+      hint: 'Trzymaj wciśnięty przycisk, żeby przesuwać paletkę na ekranie. Puść, żeby zatrzymać.',
+      up: 'GÓRA', down: 'DÓŁ',
+      namePlaceholder: 'Twoje imię (opcjonalnie)'
+    },
+    en: {
+      connecting: 'Connecting to screen…',
+      connected: 'Connected to screen',
+      connectedP1: 'Connected · Player 1 (left)',
+      connectedP2: 'Connected · Player 2 (right)',
+      full: 'Screen is already full — try again later',
+      disconnected: 'Disconnected — refresh the page',
+      noCode: 'No screen code in the link — scan the QR again',
+      errorPrefix: 'Error: ',
+      hint: 'Hold the button to move your paddle on the screen. Release to stop.',
+      up: 'UP', down: 'DOWN',
+      namePlaceholder: 'Your name (optional)'
+    }
+  };
+  let lang = 'pl';
+  let statusState = 'connecting';
+  function t(key){ return STR[lang][key]; }
+  function renderStatus(){ el.statusLabel.textContent = t(statusState); }
+  function renderStaticTexts(){
+    el.hint.textContent = t('hint');
+    el.inputName.placeholder = t('namePlaceholder');
+    el.padUp.innerHTML = '<span class="arrow">▲</span>' + t('up');
+    el.padDown.innerHTML = '<span class="arrow">▼</span>' + t('down');
+    renderStatus();
+  }
+  el.btnLang.addEventListener('click', () => {
+    lang = lang === 'pl' ? 'en' : 'pl';
+    el.btnLang.textContent = lang === 'pl' ? 'EN' : 'PL';
+    renderStaticTexts();
+  });
+  el.btnTheme.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    el.btnTheme.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+  });
+  el.btnFullscreen.addEventListener('click', () => {
+    if (!document.fullscreenElement){
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen().catch(()=>{});
+    }
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  const hostId = params.get('code');
+
+  let conn = null;
+  let up = false, down = false;
+
+  const COLORS = ['#35FF6E', '#FFB000', '#3FE0FF', '#FF5D5D', '#D45DFF', '#FFEC5D'];
+  let selectedColor = null;
+  COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'swatch';
+    sw.style.background = c;
+    sw.style.color = c;
+    sw.addEventListener('click', () => {
+      selectedColor = c;
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+      sendState();
+    });
+    el.colorRow.appendChild(sw);
+  });
+
+  function sendState(){
+    if (conn && conn.open){
+      conn.send({ type:'input', up, down, name: el.inputName.value.trim().slice(0, 16), color: selectedColor });
+    }
+  }
+  function sendName(){ sendState(); }
+  let nameDebounce = null;
+  el.inputName.addEventListener('input', () => {
+    clearTimeout(nameDebounce);
+    nameDebounce = setTimeout(sendName, 300);
+  });
+
+  if (!hostId){
+    statusState = 'noCode';
+    el.dot.className = 'dot error';
+  } else {
+    statusState = 'connecting';
+    el.dot.className = 'dot connecting';
+    const peer = new Peer();
+    peer.on('open', () => {
+      conn = peer.connect(hostId, { reliable:false });
+      conn.on('open', () => {
+        statusState = 'connected';
+        el.dot.className = 'dot connected';
+        renderStatus();
+        sendName();
+      });
+      conn.on('data', (data) => {
+        if (!data) return;
+        if (data.type === 'assign'){
+          if (data.slot === 2){
+            document.body.classList.add('player2');
+            statusState = 'connectedP2';
+          } else {
+            statusState = 'connectedP1';
+          }
+          el.dot.className = 'dot connected';
+          renderStatus();
+          sendName();
+        } else if (data.type === 'full'){
+          statusState = 'full';
+          el.dot.className = 'dot error';
+          renderStatus();
+        }
+      });
+      conn.on('close', () => {
+        statusState = 'disconnected';
+        el.dot.className = 'dot error';
+        renderStatus();
+      });
+    });
+    peer.on('error', (err) => {
+      el.statusLabel.textContent = t('errorPrefix') + err.type;
+      el.dot.className = 'dot error';
+    });
+  }
+
+  function bindPad(padEl, setter){
+    const start = (e) => { e.preventDefault(); setter(true); padEl.classList.add('active'); sendState(); };
+    const end = (e) => { e.preventDefault(); setter(false); padEl.classList.remove('active'); sendState(); };
+    padEl.addEventListener('touchstart', start, { passive:false });
+    padEl.addEventListener('touchend', end, { passive:false });
+    padEl.addEventListener('touchcancel', end, { passive:false });
+    padEl.addEventListener('mousedown', start);
+    padEl.addEventListener('mouseup', end);
+    padEl.addEventListener('mouseleave', end);
+  }
+  bindPad(el.padUp, (v) => { up = v; });
+  bindPad(el.padDown, (v) => { down = v; });
+
+  setInterval(sendState, 150);
+  window.addEventListener('beforeunload', () => { up = false; down = false; sendState(); });
+
+  renderStaticTexts();
+})();
+</script>
+</body>
+</html>
