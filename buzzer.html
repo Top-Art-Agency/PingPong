@@ -90,8 +90,11 @@
             <option value="">— brak —</option>
           </select>
         </div>
-        <textarea id="quizText" spellcheck="false"></textarea>
-        <div id="setupHint"></div>
+        <button class="ghost" id="btnToggleEditor" style="align-self:center;">POKAŻ EDYCJĘ PYTAŃ (UKRYTE PRZED PUBLICZNOŚCIĄ)</button>
+        <div id="questionsEditor" style="display:none; width:100%; flex-direction:column; gap:12px;">
+          <textarea id="quizText" spellcheck="false"></textarea>
+          <div id="setupHint"></div>
+        </div>
       </div>
 
       <div id="questionView" style="display:none; width:100%;">
@@ -127,6 +130,7 @@
   const el = {
     txtSubtitle:$('txtSubtitle'), btnLang:$('btnLang'), btnTheme:$('btnTheme'), btnFullscreen:$('btnFullscreen'),
     setupView:$('setupView'), questionView:$('questionView'), quizText:$('quizText'), setupHint:$('setupHint'),
+    questionsEditor:$('questionsEditor'), btnToggleEditor:$('btnToggleEditor'),
     savedSetsSelect:$('savedSetsSelect'), lblSavedSets:$('lblSavedSets'),
     qrCanvasMini:$('qrCanvasMini'), playerCountLbl:$('playerCountLbl'),
     progressRow:$('progressRow'), questionText:$('questionText'), optionsGrid:$('optionsGrid'), winnerBanner:$('winnerBanner'),
@@ -216,6 +220,8 @@ Argon`;
     quizState='setup';
     el.setupView.style.display=''; el.questionView.style.display='none';
     el.btnPrimary.textContent = t('startQuiz'); el.btnEdit.style.display='none';
+    el.questionsEditor.style.display='none';
+    el.btnToggleEditor.textContent = t('showEditor');
     broadcast({ type:'idle' });
   }
   function showQuestion(){
@@ -260,6 +266,11 @@ Argon`;
   });
   el.btnResetScores.addEventListener('click', () => { players.forEach(p=>p.score=0); renderLeaderboard(); });
   el.btnEdit.addEventListener('click', showSetup);
+  el.btnToggleEditor.addEventListener('click', () => {
+    const hidden = el.questionsEditor.style.display === 'none';
+    el.questionsEditor.style.display = hidden ? 'flex' : 'none';
+    el.btnToggleEditor.textContent = hidden ? t('hideEditor') : t('showEditor');
+  });
 
   // ---- Ranking (Firebase, przez wspólny scores.js) ----
   function submitScoresToRanking(){
