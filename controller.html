@@ -166,15 +166,10 @@
 
   function sendState(){
     if (conn && conn.open){
-      conn.send({ type:'input', up, down });
+      conn.send({ type:'input', up, down, name: el.inputName.value.trim().slice(0, 16) });
     }
   }
-  function sendName(){
-    if (conn && conn.open){
-      const name = el.inputName.value.trim().slice(0, 16);
-      conn.send({ type:'name', name });
-    }
-  }
+  function sendName(){ sendState(); }
   let nameDebounce = null;
   el.inputName.addEventListener('input', () => {
     clearTimeout(nameDebounce);
