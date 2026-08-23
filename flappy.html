@@ -24,6 +24,8 @@
   .scoreboard{ font-family:'Press Start 2P', monospace; font-size:clamp(28px, 6vw, 46px); text-shadow:0 0 10px currentColor; color:var(--phosphor); }
   #bestRow{ font-size:11px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:2px; text-align:center; }
   #gameWrap{ position:relative; width:100%; max-width:520px; aspect-ratio:3/4; border:2px solid var(--phosphor-dim); border-radius:6px; box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06); background:linear-gradient(var(--bg2), var(--bg2)) padding-box; overflow:hidden; }
+  #fullscreenArea:fullscreen, #fullscreenArea:-webkit-full-screen{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:var(--bg); width:100vw; height:100vh; padding:20px; }
+  #fullscreenArea:fullscreen #gameWrap, #fullscreenArea:-webkit-full-screen #gameWrap{ max-width:none; width:min(94vw, calc(88vh * 3 / 4)); height:min(88vh, calc(94vw * 4 / 3)); }
   canvas{ display:block; width:100%; height:100%; }
   #overlayMsg{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; background:rgba(5,8,7,0.92); font-family:'Press Start 2P', monospace; font-size:14px; letter-spacing:1px; padding:24px; z-index:5; }
   body.light #overlayMsg{ background:rgba(238,243,238,0.95); }
@@ -45,6 +47,13 @@
   .seg-btn.active{ color:var(--phosphor); border-color:var(--phosphor); box-shadow:0 0 8px rgba(53,255,110,0.25); }
   footer{ width:100%; max-width:520px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
   footer b{ color:var(--phosphor); }
+  .ranking-panel{ width:100%; max-width:520px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); margin-bottom:4px; }
+  .ranking-panel h3{ font-size:11px; letter-spacing:1px; color:var(--phosphor-dim); margin-bottom:10px; font-weight:normal; display:flex; justify-content:space-between; align-items:center; }
+  .ranking-panel h3 a{ color:var(--phosphor); text-decoration:none; font-size:10px; border-bottom:1px dotted var(--phosphor); }
+  .rank-row{ display:flex; justify-content:space-between; font-size:12px; padding:5px 8px; border-radius:4px; background:rgba(53,255,110,0.03); margin-bottom:4px; }
+  .rank-row .n{ color:var(--phosphor); }
+  .rank-row .s{ color:var(--amber); font-family:'Press Start 2P', monospace; font-size:11px; }
+  .rank-row.empty{ color:var(--phosphor-dim); font-style:italic; background:none; }
 </style>
 </head>
 <body>
@@ -60,6 +69,7 @@
   </div>
 </header>
 <main>
+  <div id="fullscreenArea">
   <div>
     <div class="scoreboard" id="scoreBoard">0</div>
     <div id="bestRow">NAJLEPSZY: 0</div>
@@ -74,6 +84,7 @@
       <div id="countdownSub" class="small" style="display:none;"></div>
     </div>
   </div>
+  </div>
   <div class="controls-panel">
     <div class="ctrl-group">
       <label id="lblMode">Tryb gry</label>
@@ -83,9 +94,17 @@
       </div>
     </div>
   </div>
+  <div class="ranking-panel">
+    <h3><span id="lblRankingPanel">TOP 5 — FLAPPY</span><a id="linkFullRanking" href="https://TWOJA-NAZWA.github.io/arcade-ranking/" target="_blank">Pełny ranking →</a></h3>
+    <div id="rankList"><div class="rank-row empty">Ładowanie…</div></div>
+  </div>
+
   <footer id="footerText">Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.</footer>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://TWOJA-NAZWA.github.io/arcade-ranking/scores.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (() => {
@@ -121,7 +140,7 @@
   let bestScore=0;
 
   // 1p: single slot
-  let soloConn=null, soloName=null;
+  let soloConn=null, soloName=null, soloColor=null;
   // multi: unlimited
   const players = new Map(); // connId -> {conn, name, bird}
 
@@ -160,7 +179,7 @@
   }
   el.btnLang.addEventListener('click', () => { lang=lang==='pl'?'en':'pl'; el.btnLang.textContent=lang==='pl'?'EN':'PL'; renderStaticTexts(); });
   el.btnTheme.addEventListener('click', () => { document.body.classList.toggle('light'); el.btnTheme.textContent = document.body.classList.contains('light')?'☀️':'🌙'; });
-  el.btnFullscreen.addEventListener('click', () => { if(!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(()=>{});} else { document.exitFullscreen().catch(()=>{});} });
+  el.btnFullscreen.addEventListener('click', () => { if(!document.fullscreenElement){ (document.getElementById('fullscreenArea')||document.documentElement).requestFullscreen().catch(()=>{});} else { document.exitFullscreen().catch(()=>{});} });
 
   function setMode(m){
     mode=m; el.modeBtn1p.classList.toggle('active', m==='1p'); el.modeBtnMulti.classList.toggle('active', m==='multi');
@@ -189,16 +208,18 @@
           if (!data) return;
           if (data.type==='flap' && running) flap();
           if (data.name !== undefined) soloName = data.name ? data.name.trim().slice(0,16) : null;
+          if (data.color !== undefined) soloColor = data.color || null;
         });
         conn.on('close', () => { soloConn=null; soloName=null; running=false; overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden'); });
         el.dot.className='dot connected'; el.statusLabel.textContent = t('connectedOne'); el.overlay.classList.remove('hidden');
         if (overlayState==='qr'){ beginLobbySolo(); }
       } else {
         const id = conn.peer;
-        players.set(id, { conn, name:null, bird:null });
+        players.set(id, { conn, name:null, color:null, bird:null });
         conn.on('data', (data) => {
           if (!data) return;
           if (data.name !== undefined){ const p=players.get(id); if(p) p.name = data.name ? data.name.trim().slice(0,16) : null; if(overlayState==='lobby') renderOverlay(); }
+          if (data.color !== undefined){ const p=players.get(id); if(p) p.color = data.color || null; }
           if (data.type==='flap'){ const p=players.get(id); if (p && p.bird && p.bird.alive) flapBird(p.bird); }
         });
         conn.on('close', () => {
@@ -323,6 +344,7 @@
     }
     document.getElementById('gameoverSub').textContent = (soloName?soloName.toUpperCase()+' · ':'') + 'SCORE: ' + solo.score;
     el.overlay.classList.remove('hidden');
+    if (window.ArcadeScores && window.ArcadeScores.ready) window.ArcadeScores.submit('flappy', soloName, solo.score, soloColor);
     resultTimer = setTimeout(() => { if (soloConn){ beginLobbySolo(); } else { overlayState='qr'; renderOverlay(); } }, 4000);
   }
   function endMulti(){
@@ -339,8 +361,25 @@
     }
     document.getElementById('gameoverSub').textContent = arr.map(a=>a.name+': '+a.score).join(' · ');
     el.overlay.classList.remove('hidden');
+    if (window.ArcadeScores && window.ArcadeScores.ready){
+      players.forEach(p => { window.ArcadeScores.submit('flappy', p.name, p.bird?p.bird.score:0, p.color); });
+    }
     resultTimer = setTimeout(() => { if (players.size>0){ beginLobbyMulti(); } else { overlayState='qr'; renderOverlay(); } }, 5000);
   }
+
+  // ---- Ranking (Firebase, przez wspólny scores.js) ----
+  function initRankingPanel(){
+    const list = document.getElementById('rankList');
+    if (!window.ArcadeScores || !window.ArcadeScores.ready){
+      list.innerHTML = '<div class="rank-row empty">Ranking niedostępny — uzupełnij scores.js</div>';
+      return;
+    }
+    window.ArcadeScores.listenTop('flappy', 5, (rows) => {
+      if (!rows.length){ list.innerHTML = '<div class="rank-row empty">Brak wyników jeszcze</div>'; return; }
+      list.innerHTML = rows.map(r => '<div class="rank-row"><span class="n">'+(r.name||'?')+'</span><span class="s">'+r.score+'</span></div>').join('');
+    });
+  }
+  initRankingPanel();
 
   function draw(){
     ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg2').trim() || '#0A120D';
@@ -352,16 +391,17 @@
     });
     ctx.shadowBlur=0;
     if (mode==='1p' && solo){
-      ctx.fillStyle = solo.alive ? '#35FF6E' : 'rgba(120,120,120,0.6)';
-      ctx.shadowColor='#35FF6E'; ctx.shadowBlur = solo.alive?12:0;
+      const c = soloColor || '#35FF6E';
+      ctx.fillStyle = solo.alive ? c : 'rgba(120,120,120,0.6)';
+      ctx.shadowColor=c; ctx.shadowBlur = solo.alive?12:0;
       ctx.beginPath(); ctx.arc(solo.x, solo.y, 12, 0, Math.PI*2); ctx.fill();
       ctx.shadowBlur=0;
     } else if (mode==='multi'){
-      const colors=['#35FF6E','#FFB000','#3FE0FF','#FF5D5D','#D45DFF','#FFEC5D'];
+      const fallbackColors=['#35FF6E','#FFB000','#3FE0FF','#FF5D5D','#D45DFF','#FFEC5D'];
       let i=0;
       players.forEach(p => {
         const b=p.bird; if (!b) return;
-        const color = colors[i%colors.length]; i++;
+        const color = p.color || fallbackColors[i%fallbackColors.length]; i++;
         ctx.fillStyle = b.alive ? color : 'rgba(120,120,120,0.4)';
         ctx.shadowColor=color; ctx.shadowBlur = b.alive?10:0;
         ctx.beginPath(); ctx.arc(b.x, b.y, 11, 0, Math.PI*2); ctx.fill();
