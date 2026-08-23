@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>QUIZ — Ekran</title>
+<title>FLAPPY — Ekran</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
   :root{ --phosphor:#35FF6E; --phosphor-dim:#1B7A38; --bg:#050807; --bg2:#0A120D; --amber:#FFB000; --line:rgba(53,255,110,0.18); --scan-op:0.18; --vig-op:0.65; }
@@ -13,64 +13,54 @@
   body{ background:var(--bg); color:var(--phosphor); font-family:'Space Mono', monospace; min-height:100vh; display:flex; flex-direction:column; align-items:center; overflow-x:hidden; position:relative; transition:background .2s; }
   body::before{ content:""; position:fixed; inset:0; background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,var(--scan-op)) 3px, rgba(0,0,0,var(--scan-op)) 3px); pointer-events:none; z-index:50; mix-blend-mode:multiply; }
   body::after{ content:""; position:fixed; inset:0; background:radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,var(--vig-op)) 100%); pointer-events:none; z-index:51; }
-  header{ width:100%; max-width:1040px; padding:22px 20px 8px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  header{ width:100%; max-width:920px; padding:22px 20px 8px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
   .logo{ font-family:'Press Start 2P', monospace; font-size:22px; letter-spacing:2px; text-shadow:0 0 6px var(--phosphor), 0 0 18px rgba(53,255,110,0.5); }
   .logo span{ color:var(--amber); text-shadow:0 0 6px var(--amber), 0 0 18px rgba(255,176,0,0.5); }
   .subtitle{ font-size:12px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:6px; }
   .toolbar{ display:flex; gap:8px; }
   .icon-btn{ font-family:'Space Mono', monospace; font-size:11px; background:transparent; color:var(--phosphor); border:1px solid var(--phosphor-dim); padding:8px 10px; border-radius:4px; cursor:pointer; min-width:38px; }
   .icon-btn:hover{ background:rgba(53,255,110,0.08); border-color:var(--phosphor); }
-  main{ width:100%; max-width:1040px; padding:16px 20px 40px; display:grid; grid-template-columns:2fr 1fr; gap:22px; }
-  @media (max-width:800px){ main{ grid-template-columns:1fr; } }
-  #stage{ display:flex; flex-direction:column; align-items:center; gap:16px; }
-  #arena{ position:relative; width:100%; min-height:420px; border:2px solid var(--phosphor-dim); border-radius:6px; box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06); background:var(--bg2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:26px; text-align:center; }
-  #stage:fullscreen, #stage:-webkit-full-screen{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:var(--bg); width:100vw; height:100vh; padding:30px; }
-  #stage:fullscreen #arena, #stage:-webkit-full-screen #arena{ width:min(94vw, 1100px); height:min(78vh, 700px); min-height:0; }
-
-  /* setup view */
-  #setupView{ width:100%; display:flex; flex-direction:column; gap:12px; align-items:center; }
-  #setupView textarea{ width:100%; min-height:220px; font-family:'Space Mono', monospace; font-size:13px; line-height:1.6; background:rgba(53,255,110,0.03); color:var(--phosphor); border:1px solid var(--phosphor-dim); border-radius:8px; padding:12px; outline:none; resize:vertical; }
-  #setupHint{ font-size:11px; color:var(--phosphor-dim); line-height:1.7; text-align:left; width:100%; }
-  #setupHint b{ color:var(--phosphor); }
-  #qrMini{ display:flex; flex-direction:column; align-items:center; gap:8px; font-size:11px; color:var(--phosphor-dim); background:#EAFFF0; padding:14px; border-radius:8px; box-shadow:0 0 20px rgba(53,255,110,0.3); }
-  #qrMini img, #qrMini canvas{ width:180px !important; height:180px !important; }
-
-  /* question view */
-  #progressRow{ font-size:11px; color:var(--phosphor-dim); letter-spacing:1px; }
-  #questionText{ font-family:'Press Start 2P', monospace; font-size:clamp(16px,3vw,24px); line-height:1.6; color:var(--phosphor); text-shadow:0 0 8px currentColor; max-width:640px; }
-  #optionsGrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; max-width:640px; }
-  @media (max-width:520px){ #optionsGrid{ grid-template-columns:1fr; } }
-  .opt{ border:2px solid var(--phosphor-dim); border-radius:8px; padding:14px 12px; font-size:13px; display:flex; gap:10px; align-items:center; text-align:left; }
-  .opt .letter{ font-family:'Press Start 2P', monospace; font-size:12px; color:var(--phosphor-dim); }
-  .opt.correct{ border-color:var(--phosphor); background:rgba(53,255,110,0.12); box-shadow:0 0 14px rgba(53,255,110,0.3); }
-  .opt.correct .letter{ color:var(--phosphor); }
-  #winnerBanner{ font-family:'Press Start 2P', monospace; font-size:clamp(20px,4vw,32px); color:var(--amber); text-shadow:0 0 14px var(--amber); display:none; }
-
-  #qrBox{ background:#EAFFF0; padding:12px; border-radius:8px; box-shadow:0 0 20px rgba(53,255,110,0.3); }
-  #qrCanvas{ width:130px; height:130px; }
-  .actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-  button{ font-family:'Press Start 2P', monospace; font-size:11px; letter-spacing:1px; background:transparent; color:var(--phosphor); border:2px solid var(--phosphor); padding:12px 20px; border-radius:4px; cursor:pointer; text-shadow:0 0 6px var(--phosphor); box-shadow:0 0 10px rgba(53,255,110,0.15); }
-  button:hover{ background:rgba(53,255,110,0.1); }
-  button.secondary{ color:var(--amber); border-color:var(--amber); text-shadow:0 0 6px var(--amber); font-size:10px; padding:10px 16px; }
-  button.ghost{ color:var(--phosphor-dim); border-color:var(--phosphor-dim); text-shadow:none; box-shadow:none; font-size:10px; padding:10px 16px; }
-  #sidebar{ display:flex; flex-direction:column; gap:14px; }
-  .panel{ border:1px solid var(--line); border-radius:8px; padding:14px; background:rgba(53,255,110,0.02); }
-  .panel h3{ font-size:11px; letter-spacing:1px; color:var(--phosphor-dim); margin-bottom:10px; font-weight:normal; display:flex; justify-content:space-between; align-items:center; }
-  .panel h3 a{ color:var(--phosphor); text-decoration:none; font-size:10px; border-bottom:1px dotted var(--phosphor); }
-  #leaderboard{ display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto; }
-  .lb-row{ display:flex; justify-content:space-between; font-size:13px; padding:6px 8px; border-radius:4px; background:rgba(53,255,110,0.03); }
-  .lb-row .n{ color:var(--phosphor); }
-  .lb-row .s{ color:var(--amber); font-family:'Press Start 2P', monospace; font-size:12px; }
-  .lb-row.empty{ color:var(--phosphor-dim); font-style:italic; }
-  footer{ width:100%; max-width:1040px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
+  main{ width:100%; max-width:920px; padding:16px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .scoreboard{ font-family:'Press Start 2P', monospace; font-size:clamp(28px, 6vw, 46px); text-shadow:0 0 10px currentColor; color:var(--phosphor); }
+  #bestRow{ font-size:11px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:2px; text-align:center; }
+  #gameWrap{ position:relative; width:100%; max-width:520px; aspect-ratio:3/4; border:2px solid var(--phosphor-dim); border-radius:6px; box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06); background:linear-gradient(var(--bg2), var(--bg2)) padding-box; overflow:hidden; }
+  #fullscreenArea:fullscreen, #fullscreenArea:-webkit-full-screen{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:var(--bg); width:100vw; height:100vh; padding:20px; }
+  #fullscreenArea:fullscreen #gameWrap, #fullscreenArea:-webkit-full-screen #gameWrap{ max-width:none; width:min(94vw, calc(88vh * 3 / 4)); height:min(88vh, calc(94vw * 4 / 3)); }
+  canvas{ display:block; width:100%; height:100%; }
+  #overlayMsg{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; background:rgba(5,8,7,0.92); font-family:'Press Start 2P', monospace; font-size:14px; letter-spacing:1px; padding:24px; z-index:5; }
+  body.light #overlayMsg{ background:rgba(238,243,238,0.95); }
+  #overlayMsg .small{ font-family:'Space Mono', monospace; font-size:12px; color:var(--phosphor-dim); letter-spacing:0.5px; max-width:380px; line-height:1.7; }
+  #overlayMsg.hidden{ display:none; }
+  #overlayMsg.countdown-mode #qrBox, #overlayMsg.countdown-mode .status-row, #overlayMsg.countdown-mode #playerList{ display:none; }
+  #overlayTitle.countdown-number{ font-size:64px; }
+  #qrBox{ background:#EAFFF0; padding:14px; border-radius:8px; box-shadow:0 0 24px rgba(53,255,110,0.35); }
+  .status-row{ display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:0.5px; }
+  .dot{ width:9px; height:9px; border-radius:50%; background:#555; flex-shrink:0; }
+  .dot.waiting{ background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite; }
+  .dot.connected{ background:var(--phosphor); box-shadow:0 0 8px var(--phosphor); }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+  #playerList{ font-size:10px; color:var(--phosphor-dim); max-width:380px; line-height:1.8; }
+  .controls-panel{ width:100%; max-width:520px; display:grid; grid-template-columns:1fr; gap:14px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); }
+  .ctrl-group label{ font-size:10px; letter-spacing:0.5px; color:var(--phosphor-dim); }
+  .seg-row{ display:flex; gap:6px; }
+  .seg-btn{ flex:1; font-size:9px; padding:8px 4px; border:1px solid var(--phosphor-dim); color:var(--phosphor-dim); background:transparent; border-radius:4px; }
+  .seg-btn.active{ color:var(--phosphor); border-color:var(--phosphor); box-shadow:0 0 8px rgba(53,255,110,0.25); }
+  footer{ width:100%; max-width:520px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
   footer b{ color:var(--phosphor); }
+  .ranking-panel{ width:100%; max-width:520px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); margin-bottom:4px; }
+  .ranking-panel h3{ font-size:11px; letter-spacing:1px; color:var(--phosphor-dim); margin-bottom:10px; font-weight:normal; display:flex; justify-content:space-between; align-items:center; }
+  .ranking-panel h3 a{ color:var(--phosphor); text-decoration:none; font-size:10px; border-bottom:1px dotted var(--phosphor); }
+  .rank-row{ display:flex; justify-content:space-between; font-size:12px; padding:5px 8px; border-radius:4px; background:rgba(53,255,110,0.03); margin-bottom:4px; }
+  .rank-row .n{ color:var(--phosphor); }
+  .rank-row .s{ color:var(--amber); font-family:'Press Start 2P', monospace; font-size:11px; }
+  .rank-row.empty{ color:var(--phosphor-dim); font-style:italic; background:none; }
 </style>
 </head>
 <body>
 <header>
   <div>
-    <div class="logo"><span>QUIZ</span></div>
-    <div class="subtitle" id="txtSubtitle">gracze dołączają skanując QR w dowolnym momencie</div>
+    <div class="logo"><span>FLAPPY</span></div>
+    <div class="subtitle" id="txtSubtitle">zeskanuj kod QR telefonem, żeby zostać kontrolerem</div>
   </div>
   <div class="toolbar">
     <button class="icon-btn" id="btnLang" title="Language">EN</button>
@@ -79,43 +69,38 @@
   </div>
 </header>
 <main>
-  <div id="stage">
-    <div id="arena">
-
-      <div id="setupView">
-        <div id="qrMini"><div id="qrCanvasMini"></div><span id="playerCountLbl">0 graczy połączonych</span></div>
-        <div id="savedSetsRow" style="width:100%;">
-          <label id="lblSavedSets" style="font-size:10px; color:var(--phosphor-dim); letter-spacing:0.5px; display:block; margin-bottom:6px;">Wczytaj zapisany zestaw</label>
-          <select id="savedSetsSelect" style="width:100%; font-family:'Space Mono', monospace; font-size:12px; background:rgba(53,255,110,0.04); color:var(--phosphor); border:1px solid var(--phosphor-dim); border-radius:6px; padding:8px 10px; outline:none;">
-            <option value="">— brak —</option>
-          </select>
-        </div>
-        <textarea id="quizText" spellcheck="false"></textarea>
-        <div id="setupHint"></div>
-      </div>
-
-      <div id="questionView" style="display:none; width:100%;">
-        <div id="progressRow">PYTANIE 1 / 5</div>
-        <div id="questionText">Pytanie...</div>
-        <div id="optionsGrid"></div>
-        <div id="winnerBanner"></div>
-      </div>
-
-    </div>
-    <div class="actions">
-      <button id="btnPrimary">ROZPOCZNIJ QUIZ</button>
-      <button class="secondary" id="btnResetScores">RESETUJ WYNIKI</button>
-      <button class="ghost" id="btnEdit" style="display:none;">EDYTUJ PYTANIA</button>
+  <div id="fullscreenArea">
+  <div>
+    <div class="scoreboard" id="scoreBoard">0</div>
+    <div id="bestRow">NAJLEPSZY: 0</div>
+  </div>
+  <div id="gameWrap">
+    <canvas id="game"></canvas>
+    <div id="overlayMsg">
+      <div id="overlayTitle">ZESKANUJ, ŻEBY DOŁĄCZYĆ</div>
+      <div id="qrBox"><div id="qrCanvas"></div></div>
+      <div class="status-row"><div class="dot waiting" id="dot"></div><span id="statusLabel">Czekam na telefon…</span></div>
+      <div id="playerList"></div>
+      <div id="countdownSub" class="small" style="display:none;"></div>
     </div>
   </div>
-  <div id="sidebar">
-    <div class="panel">
-      <h3><span id="lblLeaderboard">WYNIKI</span><a id="linkFullRanking" href="https://TWOJA-NAZWA.github.io/arcade-ranking/" target="_blank">Pełny ranking →</a></h3>
-      <div id="leaderboard"><div class="lb-row empty" id="lbEmpty">Brak graczy jeszcze</div></div>
+  </div>
+  <div class="controls-panel">
+    <div class="ctrl-group">
+      <label id="lblMode">Tryb gry</label>
+      <div class="seg-row">
+        <button class="seg-btn active" id="modeBtn1p">1 GRACZ</button>
+        <button class="seg-btn" id="modeBtnMulti">WIELU GRACZY</button>
+      </div>
     </div>
   </div>
+  <div class="ranking-panel">
+    <h3><span id="lblRankingPanel">TOP 5 — FLAPPY</span><a id="linkFullRanking" href="https://TWOJA-NAZWA.github.io/arcade-ranking/" target="_blank">Pełny ranking →</a></h3>
+    <div id="rankList"><div class="rank-row empty">Ładowanie…</div></div>
+  </div>
+
+  <footer id="footerText">Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.</footer>
 </main>
-<footer id="footerText"></footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -125,223 +110,308 @@
 (() => {
   const $ = id => document.getElementById(id);
   const el = {
-    txtSubtitle:$('txtSubtitle'), btnLang:$('btnLang'), btnTheme:$('btnTheme'), btnFullscreen:$('btnFullscreen'),
-    setupView:$('setupView'), questionView:$('questionView'), quizText:$('quizText'), setupHint:$('setupHint'),
-    savedSetsSelect:$('savedSetsSelect'), lblSavedSets:$('lblSavedSets'),
-    qrCanvasMini:$('qrCanvasMini'), playerCountLbl:$('playerCountLbl'),
-    progressRow:$('progressRow'), questionText:$('questionText'), optionsGrid:$('optionsGrid'), winnerBanner:$('winnerBanner'),
-    btnPrimary:$('btnPrimary'), btnResetScores:$('btnResetScores'), btnEdit:$('btnEdit'),
-    leaderboard:$('leaderboard'), lblLeaderboard:$('lblLeaderboard'), footerText:$('footerText')
+    overlay:$('overlayMsg'), overlayTitle:$('overlayTitle'), dot:$('dot'), statusLabel:$('statusLabel'),
+    qrCanvas:$('qrCanvas'), scoreBoard:$('scoreBoard'), bestRow:$('bestRow'), canvas:$('game'),
+    btnLang:$('btnLang'), btnTheme:$('btnTheme'), btnFullscreen:$('btnFullscreen'), txtSubtitle:$('txtSubtitle'),
+    lblMode:$('lblMode'), modeBtn1p:$('modeBtn1p'), modeBtnMulti:$('modeBtnMulti'), footerText:$('footerText'),
+    playerList:$('playerList'), countdownSub:$('countdownSub')
   };
 
   const STR = { pl:{
-      subtitle:'gracze dołączają skanując QR w dowolnym momencie',
-      startQuiz:'ROZPOCZNIJ QUIZ', reveal:'POKAŻ ODPOWIEDŹ', next:'NASTĘPNE PYTANIE', finish:'ZAKOŃCZ QUIZ',
-      resetScores:'RESETUJ WYNIKI', editQuestions:'EDYTUJ PYTANIA', leaderboardLbl:'WYNIKI', empty:'Brak graczy jeszcze',
-      playersConnected:' graczy połączonych', question:'PYTANIE', nobody:'NIKT NIE ODPOWIEDZIAŁ POPRAWNIE',
-      footer:'Wklej pytania w polu wyżej, kliknij „ROZPOCZNIJ QUIZ”. Gracze widzą te same odpowiedzi na telefonach — kto pierwszy trafi poprawną, zdobywa punkt. Format: pytanie, potem odpowiedzi w kolejnych liniach, poprawną oznacz gwiazdką na początku linii.',
-      hint:'<b>Format:</b> pytanie w jednej linii, pod nim odpowiedzi (po jednej w linii), poprawną oznacz gwiazdką na początku. Pusta linia oddziela kolejne pytania.',
-      savedSets:'Wczytaj zapisany zestaw'
+      subtitle:'zeskanuj kod QR telefonem, żeby zostać kontrolerem', overlayQrTitle:'ZESKANUJ, ŻEBY DOŁĄCZYĆ',
+      waitingOne:'Czekam na telefon…', connectedOne:'Telefon połączony', disconnected:'Telefon rozłączony — odśwież stronę',
+      lobbyJoin:'Dołącz teraz — runda zaczyna się za chwilę', gameOver:'KONIEC RUNDY', winner:'WYGRYWA',
+      best:'NAJLEPSZY', modeLabel:'Tryb gry', mode1p:'1 GRACZ', modeMulti:'WIELU GRACZY', startingIn:'Zaczynamy za...',
+      footer1p:'Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.',
+      footerMulti:'Każdy telefon steruje swoim ptakiem na tej samej planszy. Dołącz skanując kod QR — runda startuje po krótkim czasie na dołączanie. Kto przetrwa najdłużej, wygrywa.'
     }, en:{
-      subtitle:'players join by scanning the QR at any time',
-      startQuiz:'START QUIZ', reveal:'REVEAL ANSWER', next:'NEXT QUESTION', finish:'FINISH QUIZ',
-      resetScores:'RESET SCORES', editQuestions:'EDIT QUESTIONS', leaderboardLbl:'SCORES', empty:'No players yet',
-      playersConnected:' players connected', question:'QUESTION', nobody:'NOBODY ANSWERED CORRECTLY',
-      footer:'Paste questions in the box above, click "START QUIZ". Players see the same options on their phones — first correct answer scores the point. Format: question line, then answers on following lines, mark the correct one with a leading asterisk.',
-      hint:'<b>Format:</b> question on one line, answers below (one per line), mark the correct one with a leading asterisk. A blank line separates questions.',
-      savedSets:'Load a saved set'
+      subtitle:'scan the QR code with your phone to become a controller', overlayQrTitle:'SCAN TO JOIN',
+      waitingOne:'Waiting for phone…', connectedOne:'Phone connected', disconnected:'Phone disconnected — refresh the page',
+      lobbyJoin:'Join now — round starts soon', gameOver:'ROUND OVER', winner:'WINS',
+      best:'BEST', modeLabel:'Game mode', mode1p:'1 PLAYER', modeMulti:'MULTIPLAYER', startingIn:'Starting in...',
+      footer1p:'Tap to make the bird fly up. Avoid the pipes. Score a point for every pipe pair passed.',
+      footerMulti:'Each phone controls its own bird on the same board. Join by scanning the QR — the round starts after a short join window. Whoever survives longest wins.'
     } };
   let lang='pl'; function t(k){ return STR[lang][k]; }
 
-  const DEFAULT_TEXT =
-`Stolica Polski?
-Kraków
-*Warszawa
-Wrocław
-Gdańsk
+  let mode='1p';
+  let overlayState='qr'; // qr | lobby | countdown | result
+  let countdownTimer=null, lobbyTimer=null, resultTimer=null, countdownN=3;
+  let bestScore=0;
 
-Ile to 6 x 7?
-40
-*42
-44
-48
+  // 1p: single slot
+  let soloConn=null, soloName=null, soloColor=null;
+  // multi: unlimited
+  const players = new Map(); // connId -> {conn, name, bird}
 
-Który pierwiastek ma symbol Au?
-Srebro
-Aluminium
-*Złoto
-Argon`;
-  el.quizText.value = DEFAULT_TEXT;
-
-  const players = new Map(); // connId -> {conn, name, score}
-  let questions = [];
-  let qIndex = 0;
-  let quizState = 'setup'; // setup | active | revealed
-  let answeredThisRound = new Set(); // connIds who already answered (right or wrong) this round
-  let correctFoundBy = null; // connId of winner this round, or null
-
-  function parseQuestions(text){
-    const blocks = text.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
-    const out = [];
-    blocks.forEach(b => {
-      const lines = b.split('\n').map(l=>l.trim()).filter(Boolean);
-      if (lines.length < 3) return;
-      const prompt = lines[0];
-      const opts = [];
-      let correctIndex = -1;
-      lines.slice(1).forEach((l, i) => {
-        if (l.startsWith('*')){ correctIndex = opts.length; opts.push(l.slice(1).trim()); }
-        else { opts.push(l); }
-      });
-      if (correctIndex === -1 || opts.length < 2) return;
-      out.push({ prompt, options: opts, correctIndex });
-    });
-    return out;
+  function cancelTimers(){
+    if(countdownTimer){clearInterval(countdownTimer); countdownTimer=null;}
+    if(lobbyTimer){clearInterval(lobbyTimer); lobbyTimer=null;}
+    if(resultTimer){clearTimeout(resultTimer); resultTimer=null;}
   }
 
-  function broadcast(msg){ players.forEach(p => { if (p.conn && p.conn.open) p.conn.send(msg); }); }
-  function sendTo(connId, msg){ const p = players.get(connId); if (p && p.conn && p.conn.open) p.conn.send(msg); }
-
-  function renderLeaderboard(){
-    const arr = Array.from(players.values()).sort((a,b)=>b.score-a.score);
-    if (arr.length===0){ el.leaderboard.innerHTML = '<div class="lb-row empty">'+t('empty')+'</div>'; return; }
-    el.leaderboard.innerHTML = arr.map(p => {
-      const dot = p.color ? '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+p.color+';margin-right:6px;"></span>' : '';
-      return '<div class="lb-row"><span class="n">'+dot+(p.name?p.name.toUpperCase():'?')+'</span><span class="s">'+p.score+'</span></div>';
-    }).join('');
-  }
-  function renderPlayerCount(){ el.playerCountLbl.textContent = players.size + t('playersConnected'); }
-
-  function showSetup(){
-    quizState='setup';
-    el.setupView.style.display=''; el.questionView.style.display='none';
-    el.btnPrimary.textContent = t('startQuiz'); el.btnEdit.style.display='none';
-    broadcast({ type:'idle' });
-  }
-  function showQuestion(){
-    quizState='active';
-    answeredThisRound = new Set(); correctFoundBy = null;
-    el.setupView.style.display='none'; el.questionView.style.display='';
-    el.winnerBanner.style.display='none';
-    const q = questions[qIndex];
-    el.progressRow.textContent = t('question')+' '+(qIndex+1)+' / '+questions.length;
-    el.questionText.textContent = q.prompt;
-    el.optionsGrid.innerHTML = q.options.map((o,i) => '<div class="opt" data-i="'+i+'"><span class="letter">'+String.fromCharCode(65+i)+'</span><span>'+o+'</span></div>').join('');
-    el.btnPrimary.textContent = t('reveal');
-    el.btnEdit.style.display='none';
-    broadcast({ type:'question', prompt:q.prompt, options:q.options, qIndex, qTotal:questions.length });
-  }
-  function revealAnswer(winnerConnId){
-    quizState='revealed';
-    const q = questions[qIndex];
-    document.querySelectorAll('.opt').forEach((node,i) => { if (i===q.correctIndex) node.classList.add('correct'); });
-    if (winnerConnId){
-      const p = players.get(winnerConnId);
-      el.winnerBanner.textContent = (p && p.name ? p.name.toUpperCase() : '???') + ' +1';
-    } else {
-      el.winnerBanner.textContent = t('nobody');
+  function renderOverlay(){
+    el.overlay.classList.toggle('countdown-mode', overlayState==='countdown');
+    el.overlayTitle.classList.toggle('countdown-number', overlayState==='countdown');
+    el.countdownSub.style.display = overlayState==='countdown' ? '' : 'none';
+    el.playerList.style.display = (overlayState==='lobby') ? '' : 'none';
+    if (overlayState==='qr'){ el.overlayTitle.textContent = t('overlayQrTitle'); el.statusLabel.textContent = t('waitingOne'); el.dot.className='dot waiting'; }
+    else if (overlayState==='lobby'){
+      el.overlayTitle.textContent = t('lobbyJoin');
+      el.dot.className='dot connected';
+      el.statusLabel.textContent = players.size + ' 🐤';
+      el.playerList.textContent = Array.from(players.values()).map(p=>p.name||'?').join(' · ');
     }
-    el.winnerBanner.style.display='';
-    el.btnPrimary.textContent = (qIndex < questions.length-1) ? t('next') : t('finish');
-    broadcast({ type:'result', correctIndex:q.correctIndex, winnerId:winnerConnId||null, winnerName: winnerConnId ? (players.get(winnerConnId)||{}).name : null });
-  }
-
-  el.btnPrimary.addEventListener('click', () => {
-    if (quizState==='setup'){
-      questions = parseQuestions(el.quizText.value);
-      if (questions.length===0){ alert(lang==='pl' ? 'Nie udało się rozpoznać żadnego pytania — sprawdź format.' : 'Could not parse any question — check the format.'); return; }
-      qIndex=0; showQuestion();
-    } else if (quizState==='active'){
-      revealAnswer(null);
-    } else if (quizState==='revealed'){
-      if (qIndex < questions.length-1){ qIndex++; showQuestion(); }
-      else { submitScoresToRanking(); showSetup(); }
+    else if (overlayState==='countdown'){ el.overlayTitle.textContent = String(countdownN); el.countdownSub.textContent = t('startingIn'); }
+    else if (overlayState==='result'){
+      const sub = document.getElementById('gameoverSub');
+      if (sub) sub.textContent = '';
     }
-  });
-  el.btnResetScores.addEventListener('click', () => { players.forEach(p=>p.score=0); renderLeaderboard(); });
-  el.btnEdit.addEventListener('click', showSetup);
-
-  // ---- Ranking (Firebase, przez wspólny scores.js) ----
-  function submitScoresToRanking(){
-    if (!window.ArcadeScores || !window.ArcadeScores.ready) return;
-    players.forEach(p => { if (p.score > 0) window.ArcadeScores.submit('buzzer', p.name, p.score, p.color); });
   }
-
   function renderStaticTexts(){
     el.txtSubtitle.textContent = t('subtitle');
-    el.footerText.textContent = t('footer');
-    el.setupHint.innerHTML = t('hint');
-    el.lblSavedSets.textContent = t('savedSets');
-    el.lblLeaderboard.textContent = t('leaderboardLbl');
-    renderPlayerCount();
-    renderLeaderboard();
-    if (quizState==='setup') el.btnPrimary.textContent = t('startQuiz');
-    else if (quizState==='active') el.btnPrimary.textContent = t('reveal');
-    else el.btnPrimary.textContent = (qIndex < questions.length-1) ? t('next') : t('finish');
+    el.lblMode.textContent = t('modeLabel');
+    el.modeBtn1p.textContent = t('mode1p');
+    el.modeBtnMulti.textContent = t('modeMulti');
+    el.footerText.textContent = mode==='multi' ? t('footerMulti') : t('footer1p');
+    el.bestRow.textContent = t('best') + ': ' + bestScore;
+    renderOverlay();
   }
   el.btnLang.addEventListener('click', () => { lang=lang==='pl'?'en':'pl'; el.btnLang.textContent=lang==='pl'?'EN':'PL'; renderStaticTexts(); });
   el.btnTheme.addEventListener('click', () => { document.body.classList.toggle('light'); el.btnTheme.textContent = document.body.classList.contains('light')?'☀️':'🌙'; });
-  el.btnFullscreen.addEventListener('click', () => { if(!document.fullscreenElement){ (document.getElementById('stage')||document.documentElement).requestFullscreen().catch(()=>{});} else { document.exitFullscreen().catch(()=>{});} });
+  el.btnFullscreen.addEventListener('click', () => { if(!document.fullscreenElement){ (document.getElementById('fullscreenArea')||document.documentElement).requestFullscreen().catch(()=>{});} else { document.exitFullscreen().catch(()=>{});} });
 
+  function setMode(m){
+    mode=m; el.modeBtn1p.classList.toggle('active', m==='1p'); el.modeBtnMulti.classList.toggle('active', m==='multi');
+    el.footerText.textContent = m==='multi' ? t('footerMulti') : t('footer1p');
+    cancelTimers(); overlayState='qr'; renderOverlay();
+  }
+  el.modeBtn1p.addEventListener('click', ()=>setMode('1p'));
+  el.modeBtnMulti.addEventListener('click', ()=>setMode('multi'));
+
+  // ---- WebRTC ----
   const peer = new Peer();
   peer.on('open', (id) => {
     const dir = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')+1);
-    const url = new URL(dir + 'buzzer-controller.html', window.location.origin);
+    const url = new URL(dir + 'flappy-controller.html', window.location.origin);
     url.searchParams.set('code', id);
-    new QRCode(el.qrCanvasMini, { text:url.toString(), width:180, height:180, colorDark:'#0A120D', colorLight:'#EAFFF0' });
+    new QRCode(el.qrCanvas, { text:url.toString(), width:200, height:200, colorDark:'#0A120D', colorLight:'#EAFFF0' });
   });
-  peer.on('error', (err) => { el.questionText.textContent = 'Error: '+err.type; });
+  peer.on('error', (err) => { el.statusLabel.textContent = 'Error: '+err.type; });
+
   peer.on('connection', (conn) => {
     conn.on('open', () => {
-      const id = conn.peer;
-      players.set(id, { conn, name:null, color:null, score:0 });
-      renderLeaderboard(); renderPlayerCount();
-      if (quizState==='active'){
-        const q = questions[qIndex];
-        conn.send({ type:'question', prompt:q.prompt, options:q.options, qIndex, qTotal:questions.length });
+      if (mode==='1p'){
+        if (soloConn){ conn.send({type:'full'}); setTimeout(()=>conn.close(),300); return; }
+        soloConn = conn;
+        conn.on('data', (data) => {
+          if (!data) return;
+          if (data.type==='flap' && running) flap();
+          if (data.name !== undefined) soloName = data.name ? data.name.trim().slice(0,16) : null;
+          if (data.color !== undefined) soloColor = data.color || null;
+        });
+        conn.on('close', () => { soloConn=null; soloName=null; running=false; overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden'); });
+        el.dot.className='dot connected'; el.statusLabel.textContent = t('connectedOne'); el.overlay.classList.remove('hidden');
+        if (overlayState==='qr'){ beginLobbySolo(); }
+      } else {
+        const id = conn.peer;
+        players.set(id, { conn, name:null, color:null, bird:null });
+        conn.on('data', (data) => {
+          if (!data) return;
+          if (data.name !== undefined){ const p=players.get(id); if(p) p.name = data.name ? data.name.trim().slice(0,16) : null; if(overlayState==='lobby') renderOverlay(); }
+          if (data.color !== undefined){ const p=players.get(id); if(p) p.color = data.color || null; }
+          if (data.type==='flap'){ const p=players.get(id); if (p && p.bird && p.bird.alive) flapBird(p.bird); }
+        });
+        conn.on('close', () => {
+          players.delete(id);
+          if (overlayState==='lobby' && players.size===0){ cancelTimers(); overlayState='qr'; renderOverlay(); }
+        });
+        if (overlayState==='qr'){ beginLobbyMulti(); } else { renderOverlay(); }
       }
-      conn.on('data', (data) => {
-        if (!data) return;
-        if (data.name !== undefined){ const p=players.get(id); if(p){ p.name = data.name?data.name.trim().slice(0,16):null; renderLeaderboard(); } }
-        if (data.color !== undefined){ const p=players.get(id); if(p){ p.color = data.color||null; renderLeaderboard(); } }
-        if (data.type==='answer' && quizState==='active' && !correctFoundBy && !answeredThisRound.has(id)){
-          answeredThisRound.add(id);
-          const q = questions[qIndex];
-          if (data.index === q.correctIndex){
-            correctFoundBy = id;
-            const p = players.get(id); if (p) p.score++;
-            renderLeaderboard();
-            revealAnswer(id);
-          } else {
-            sendTo(id, { type:'wrongPrivate' });
-          }
+    });
+  });
+
+  function beginLobbySolo(){
+    cancelTimers(); overlayState='countdown'; countdownN=3; el.overlay.classList.remove('hidden'); renderOverlay();
+    countdownTimer = setInterval(() => {
+      countdownN--;
+      if (countdownN<=0){ cancelTimers(); startSolo(); } else { renderOverlay(); }
+    }, 1000);
+  }
+  function beginLobbyMulti(){
+    cancelTimers(); overlayState='lobby'; el.overlay.classList.remove('hidden'); renderOverlay();
+    let secs=8;
+    lobbyTimer = setInterval(() => {
+      secs--;
+      el.overlayTitle.textContent = t('lobbyJoin') + ' (' + secs + ')';
+      if (secs<=0){
+        clearInterval(lobbyTimer); lobbyTimer=null;
+        overlayState='countdown'; countdownN=3; renderOverlay();
+        countdownTimer = setInterval(() => {
+          countdownN--;
+          if (countdownN<=0){ cancelTimers(); startMulti(); } else { renderOverlay(); }
+        }, 1000);
+      }
+    }, 1000);
+  }
+
+  // ---- Flappy physics ----
+  const ctx = el.canvas.getContext('2d');
+  const W=390, H=520;
+  el.canvas.width=W; el.canvas.height=H;
+  const GRAV=0.35, FLAP_V=-6.5, PIPE_W=52, PIPE_GAP=155, PIPE_SPEED=2.6, PIPE_SPACING=210;
+  let running=false, pipes=[], distSinceSpawn=0;
+  let solo=null; // {y,vy,alive,score,x}
+
+  function newBird(){ return { x:80, y:H/2, vy:0, alive:true, score:0 }; }
+  function flap(){ if (solo && solo.alive) solo.vy = FLAP_V; }
+  function flapBird(b){ b.vy = FLAP_V; }
+
+  function spawnPipe(){
+    const margin=50;
+    const gapY = margin + Math.random()*(H-2*margin-PIPE_GAP);
+    pipes.push({ x:W+20, gapY, passed:false });
+  }
+  function startSolo(){
+    el.overlay.classList.add('hidden');
+    solo = newBird(); pipes=[]; distSinceSpawn=0; spawnPipe(); running=true;
+    el.scoreBoard.textContent='0';
+  }
+  function startMulti(){
+    el.overlay.classList.add('hidden');
+    pipes=[]; distSinceSpawn=0; spawnPipe(); running=true;
+    players.forEach(p => { p.bird = newBird(); });
+    el.scoreBoard.textContent='0';
+  }
+
+  function birdHitsPipe(b, p){
+    if (b.x+12 < p.x || b.x-12 > p.x+PIPE_W) return false;
+    if (b.y-12 < p.gapY || b.y+12 > p.gapY+PIPE_GAP) return true;
+    return false;
+  }
+
+  function updatePhysics(){
+    if (!running) return;
+    distSinceSpawn += PIPE_SPEED;
+    if (distSinceSpawn >= PIPE_SPACING){ distSinceSpawn=0; spawnPipe(); }
+    pipes.forEach(p => p.x -= PIPE_SPEED);
+    while (pipes.length && pipes[0].x < -PIPE_W-20) pipes.shift();
+
+    if (mode==='1p'){
+      if (solo && solo.alive){
+        solo.vy += GRAV; solo.y += solo.vy;
+        if (solo.y < 10 || solo.y > H-10) solo.alive=false;
+        pipes.forEach(p => {
+          if (!p.passed && p.x+PIPE_W < solo.x){ p.passed=true; solo.score++; }
+          if (birdHitsPipe(solo, p)) solo.alive=false;
+        });
+        el.scoreBoard.textContent = solo.score;
+        if (!solo.alive) endSolo();
+      }
+    } else {
+      let anyAlive=false;
+      players.forEach(p => {
+        const b=p.bird; if (!b || !b.alive) return;
+        anyAlive=true;
+        b.vy += GRAV; b.y += b.vy;
+        if (b.y<10 || b.y>H-10) b.alive=false;
+        pipes.forEach(pipe => {
+          if (!pipe.passed_multi_ && false) {}
+          if (birdHitsPipe(b, pipe)) b.alive=false;
+        });
+      });
+      pipes.forEach(pipe => {
+        if (!pipe.passed){
+          let anyPassed=false;
+          players.forEach(p => { if (p.bird && p.bird.alive && pipe.x+PIPE_W < p.bird.x) anyPassed=true; });
+          if (anyPassed){ pipe.passed=true; players.forEach(p => { if (p.bird && p.bird.alive) p.bird.score++; }); }
         }
       });
-      conn.on('close', () => { players.delete(id); renderLeaderboard(); renderPlayerCount(); });
-    });
-  });
+      const maxScore = Math.max(0, ...Array.from(players.values()).map(p=>p.bird?p.bird.score:0));
+      el.scoreBoard.textContent = maxScore;
+      if (!anyAlive && players.size>0) endMulti();
+    }
+  }
 
-  // ---- Wczytywanie zapisanych zestawów pytań (z osobnego repo edytora) ----
-  let savedSets = [];
-  function loadSavedSetsList(){
-    if (!window.ArcadeScores || !window.ArcadeScores.ready) return;
-    window.ArcadeScores.listQuestionSets(rows => {
-      savedSets = rows;
-      const current = el.savedSetsSelect.value;
-      el.savedSetsSelect.innerHTML = '<option value="">— brak —</option>' +
-        rows.map(s => '<option value="'+s.id+'">'+(s.name||s.id)+'</option>').join('');
-      if (rows.some(s=>s.id===current)) el.savedSetsSelect.value = current;
+  function endSolo(){
+    running=false;
+    if (solo.score > bestScore){ bestScore = solo.score; el.bestRow.textContent = t('best')+': '+bestScore; }
+    overlayState='result';
+    el.overlayTitle.textContent = t('gameOver');
+    if (!document.getElementById('gameoverSub')){
+      const sub=document.createElement('div'); sub.id='gameoverSub'; sub.className='small';
+      el.overlay.insertBefore(sub, el.countdownSub);
+    }
+    document.getElementById('gameoverSub').textContent = (soloName?soloName.toUpperCase()+' · ':'') + 'SCORE: ' + solo.score;
+    el.overlay.classList.remove('hidden');
+    if (window.ArcadeScores && window.ArcadeScores.ready) window.ArcadeScores.submit('flappy', soloName, solo.score, soloColor);
+    resultTimer = setTimeout(() => { if (soloConn){ beginLobbySolo(); } else { overlayState='qr'; renderOverlay(); } }, 4000);
+  }
+  function endMulti(){
+    running=false;
+    overlayState='result';
+    const arr = Array.from(players.values()).map(p => ({ name: p.name || '?', score: p.bird?p.bird.score:0 }));
+    arr.sort((a,b)=>b.score-a.score);
+    const top = arr.length ? arr[0].score : 0;
+    const winners = arr.filter(a=>a.score===top).map(a=>a.name.toUpperCase());
+    el.overlayTitle.textContent = winners.join(' & ') + ' ' + t('winner');
+    if (!document.getElementById('gameoverSub')){
+      const sub=document.createElement('div'); sub.id='gameoverSub'; sub.className='small';
+      el.overlay.insertBefore(sub, el.countdownSub);
+    }
+    document.getElementById('gameoverSub').textContent = arr.map(a=>a.name+': '+a.score).join(' · ');
+    el.overlay.classList.remove('hidden');
+    if (window.ArcadeScores && window.ArcadeScores.ready){
+      players.forEach(p => { window.ArcadeScores.submit('flappy', p.name, p.bird?p.bird.score:0, p.color); });
+    }
+    resultTimer = setTimeout(() => { if (players.size>0){ beginLobbyMulti(); } else { overlayState='qr'; renderOverlay(); } }, 5000);
+  }
+
+  // ---- Ranking (Firebase, przez wspólny scores.js) ----
+  function initRankingPanel(){
+    const list = document.getElementById('rankList');
+    if (!window.ArcadeScores || !window.ArcadeScores.ready){
+      list.innerHTML = '<div class="rank-row empty">Ranking niedostępny — uzupełnij scores.js</div>';
+      return;
+    }
+    window.ArcadeScores.listenTop('flappy', 5, (rows) => {
+      if (!rows.length){ list.innerHTML = '<div class="rank-row empty">Brak wyników jeszcze</div>'; return; }
+      list.innerHTML = rows.map(r => '<div class="rank-row"><span class="n">'+(r.name||'?')+'</span><span class="s">'+r.score+'</span></div>').join('');
     });
   }
-  el.savedSetsSelect.addEventListener('change', () => {
-    const id = el.savedSetsSelect.value;
-    if (!id) return;
-    const set = savedSets.find(s=>s.id===id);
-    if (set) el.quizText.value = set.text || '';
-  });
-  loadSavedSetsList();
+  initRankingPanel();
 
-  showSetup();
+  function draw(){
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg2').trim() || '#0A120D';
+    ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='rgba(53,255,110,0.35)'; ctx.lineWidth=3; ctx.shadowColor='#35FF6E'; ctx.shadowBlur=6;
+    pipes.forEach(p => {
+      ctx.strokeRect(p.x, 0, PIPE_W, p.gapY);
+      ctx.strokeRect(p.x, p.gapY+PIPE_GAP, PIPE_W, H-(p.gapY+PIPE_GAP));
+    });
+    ctx.shadowBlur=0;
+    if (mode==='1p' && solo){
+      const c = soloColor || '#35FF6E';
+      ctx.fillStyle = solo.alive ? c : 'rgba(120,120,120,0.6)';
+      ctx.shadowColor=c; ctx.shadowBlur = solo.alive?12:0;
+      ctx.beginPath(); ctx.arc(solo.x, solo.y, 12, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur=0;
+    } else if (mode==='multi'){
+      const fallbackColors=['#35FF6E','#FFB000','#3FE0FF','#FF5D5D','#D45DFF','#FFEC5D'];
+      let i=0;
+      players.forEach(p => {
+        const b=p.bird; if (!b) return;
+        const color = p.color || fallbackColors[i%fallbackColors.length]; i++;
+        ctx.fillStyle = b.alive ? color : 'rgba(120,120,120,0.4)';
+        ctx.shadowColor=color; ctx.shadowBlur = b.alive?10:0;
+        ctx.beginPath(); ctx.arc(b.x, b.y, 11, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur=0;
+      });
+    }
+  }
+  function loop(){ updatePhysics(); draw(); requestAnimationFrame(loop); }
+  draw(); requestAnimationFrame(loop);
+
   renderStaticTexts();
 })();
 </script>
