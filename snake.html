@@ -23,12 +23,12 @@
   .toolbar{ display:flex; gap:8px; }
   .icon-btn{ font-family:'Space Mono', monospace; font-size:11px; letter-spacing:0.5px; background:transparent; color:var(--phosphor); border:1px solid var(--phosphor-dim); padding:8px 10px; border-radius:4px; cursor:pointer; min-width:38px; }
   .icon-btn:hover{ background:rgba(53,255,110,0.08); border-color:var(--phosphor); }
-  main{ width:100%; max-width:920px; padding:16px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  main{ width:100%; max-width:920px; padding:8px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
   .scoreboard{ font-family:'Press Start 2P', monospace; font-size:clamp(28px, 6vw, 46px); display:flex; align-items:center; gap:28px; text-shadow:0 0 10px currentColor; }
   .scoreboard .you{ color:var(--phosphor); }
   .scoreboard .cpu{ color:var(--amber); }
   .scoreboard .sep{ color:var(--phosphor-dim); font-size:0.6em; }
-  .score-labels{ display:flex; justify-content:space-between; width:100%; max-width:520px; font-size:10px; color:var(--phosphor-dim); letter-spacing:2px; margin-top:-10px; }
+  .score-labels{ display:flex; justify-content:space-between; width:100%; max-width:520px; font-size:10px; color:var(--phosphor-dim); letter-spacing:2px; margin-top:4px; }
   #gameWrap{ position:relative; width:100%; max-width:720px; aspect-ratio:4/3; border:2px solid var(--phosphor-dim); border-radius:6px; box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06); background:linear-gradient(var(--bg2), var(--bg2)) padding-box; overflow:hidden; }
   #fullscreenArea:fullscreen, #fullscreenArea:-webkit-full-screen{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:var(--bg); width:100vw; height:100vh; padding:20px; }
   #fullscreenArea:fullscreen #gameWrap, #fullscreenArea:-webkit-full-screen #gameWrap{ max-width:none; width:min(94vw, calc(88vh * 4 / 3)); height:min(88vh, calc(94vw * 3 / 4)); }
@@ -106,7 +106,7 @@
     </div>
   </div>
   <div class="ranking-panel">
-    <h3><span id="lblRankingPanel">TOP 5 — SNAKE</span><a id="linkFullRanking" href="https://TWOJA-NAZWA.github.io/arcade-ranking/" target="_blank">Pełny ranking →</a></h3>
+    <h3><span id="lblRankingPanel">TOP 5 — SNAKE</span><a id="linkFullRanking" href="https://top-art-agency.github.io/ranking-gier/" target="_blank">Pełny ranking →</a></h3>
     <div id="rankList"><div class="rank-row empty">Ładowanie…</div></div>
   </div>
 
@@ -115,7 +115,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://TWOJA-NAZWA.github.io/arcade-ranking/scores.js"></script>
+<script src="https://top-art-agency.github.io/ranking-gier/scores.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (() => {
