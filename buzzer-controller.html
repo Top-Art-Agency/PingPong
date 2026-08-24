@@ -25,6 +25,7 @@
   #nameRow{ padding:0 16px 8px; flex-shrink:0; }
   #inputName{ width:100%; font-family:'Space Mono', monospace; font-size:14px; background:rgba(53,255,110,0.04); color:var(--phosphor); border:1px solid var(--phosphor-dim); border-radius:6px; padding:10px 12px; outline:none; }
   #inputName::placeholder{ color:var(--phosphor-dim); opacity:0.7; }
+  #nickHint{ margin:0 16px 8px; padding:8px 10px; border:1px solid var(--amber); border-radius:6px; background:rgba(255,176,0,0.08); color:var(--amber); font-size:10.5px; letter-spacing:0.3px; text-align:center; line-height:1.4; }
   #colorRow{ display:flex; gap:8px; padding:0 16px 8px; flex-shrink:0; justify-content:center; }
   .swatch{ width:28px; height:28px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); cursor:pointer; flex-shrink:0; transition:transform .1s, border-color .1s; }
   .swatch.selected{ border-color:#fff; transform:scale(1.15); box-shadow:0 0 10px currentColor; }
@@ -56,6 +57,7 @@
   </div>
 </header>
 <div class="status-row"><div class="dot connecting" id="dot"></div><span id="statusLabel">Łączenie z ekranem…</span></div>
+<div id="nickHint">✏️ Podaj swój nick — inaczej pojawisz się w wynikach jako „?”</div>
 <div id="nameRow"><input type="text" id="inputName" maxlength="16" placeholder="Twoje imię"></div>
 <div id="colorRow"></div>
 <div id="body">
@@ -63,6 +65,7 @@
   <div id="progressRow" style="display:none;"></div>
   <div id="qText" style="display:none;"></div>
   <div id="optsWrap" style="display:none;"></div>
+  <div id="myFeedback" style="display:none; text-align:center; font-size:12px; color:#FF5D5D; padding:8px; letter-spacing:0.5px;"></div>
   <div id="resultBanner"></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
@@ -70,22 +73,24 @@
 (() => {
   const $ = id => document.getElementById(id);
   const el = { dot:$('dot'), statusLabel:$('statusLabel'), btnLang:$('btnLang'), btnTheme:$('btnTheme'),
-    btnFullscreen:$('btnFullscreen'), inputName:$('inputName'), idleMsg:$('idleMsg'), colorRow:$('colorRow'),
-    progressRow:$('progressRow'), qText:$('qText'), optsWrap:$('optsWrap'), resultBanner:$('resultBanner') };
+    btnFullscreen:$('btnFullscreen'), inputName:$('inputName'), nickHint:$('nickHint'), idleMsg:$('idleMsg'), colorRow:$('colorRow'),
+    progressRow:$('progressRow'), qText:$('qText'), optsWrap:$('optsWrap'), resultBanner:$('resultBanner'), myFeedback:$('myFeedback') };
 
   const STR = { pl:{ connecting:'Łączenie z ekranem…', connected:'Połączono z ekranem',
       disconnected:'Rozłączono — odśwież stronę', noCode:'Brak kodu ekranu w linku — zeskanuj QR jeszcze raz',
       errorPrefix:'Błąd: ', namePlaceholder:'Twoje imię', idle:'Czekaj na pytanie…', question:'PYTANIE',
-      won:'DOBRZE! +1', lostOther:'Ktoś inny odpowiedział pierwszy', lostNobody:'Koniec czasu' },
+      nickHint:'✏️ Podaj swój nick — inaczej pojawisz się w wynikach jako „?”',
+      won:'DOBRZE! +1', lostOther:'Ktoś inny odpowiedział pierwszy', lostNobody:'Koniec czasu', wrongLocal:'Zła odpowiedź — czekaj na koniec rundy' },
     en:{ connecting:'Connecting to screen…', connected:'Connected to screen',
       disconnected:'Disconnected — refresh the page', noCode:'No screen code in the link — scan the QR again',
       errorPrefix:'Error: ', namePlaceholder:'Your name', idle:'Wait for the question…', question:'QUESTION',
-      won:'CORRECT! +1', lostOther:'Someone else answered first', lostNobody:'Time is up' } };
+      nickHint:'✏️ Enter your nickname — otherwise you will show up as "?" in the results',
+      won:'CORRECT! +1', lostOther:'Someone else answered first', lostNobody:'Time is up', wrongLocal:'Wrong answer — wait for the round to end' } };
   let lang='pl', statusState='connecting';
   function t(k){ return STR[lang][k]; }
   function renderStatus(){ el.statusLabel.textContent = t(statusState); }
   function renderStaticTexts(){
-    el.inputName.placeholder = t('namePlaceholder');
+    el.inputName.placeholder = t('namePlaceholder'); el.nickHint.textContent = t('nickHint');
     if (viewState==='idle') el.idleMsg.textContent = t('idle');
     renderStatus();
   }
@@ -123,9 +128,11 @@
     el.progressRow.style.display='none'; el.qText.style.display='none'; el.optsWrap.style.display='none';
     el.resultBanner.style.display='none';
   }
+  let myAnswerIndex = null;
   function showQuestion(data){
-    viewState='question'; currentOptions = data.options;
+    viewState='question'; currentOptions = data.options; myAnswerIndex = null;
     el.idleMsg.style.display='none'; el.resultBanner.style.display='none';
+    el.myFeedback.style.display='none';
     el.progressRow.style.display=''; el.progressRow.textContent = t('question')+' '+(data.qIndex+1)+' / '+data.qTotal;
     el.qText.style.display=''; el.qText.textContent = data.prompt;
     el.optsWrap.style.display='';
@@ -134,18 +141,25 @@
       node.addEventListener('click', () => {
         if (viewState!=='question') return;
         viewState='waiting';
+        myAnswerIndex = parseInt(node.dataset.i,10);
         el.optsWrap.querySelectorAll('.opt').forEach(n=>n.classList.add('disabled'));
-        if (conn && conn.open) conn.send({ type:'answer', index: parseInt(node.dataset.i,10) });
+        if (conn && conn.open) conn.send({ type:'answer', index: myAnswerIndex });
       });
     });
   }
   function markWrong(){
     if (viewState!=='waiting') return;
-    // find which option the user tapped isn't tracked client-side separately; just show generic disabled state
     viewState='answeredWrong';
+    if (myAnswerIndex !== null){
+      const node = el.optsWrap.querySelector('.opt[data-i="'+myAnswerIndex+'"]');
+      if (node) node.classList.add('mine-wrong');
+    }
+    el.myFeedback.textContent = t('wrongLocal');
+    el.myFeedback.style.display = '';
   }
   function showResult(data){
     viewState='revealed';
+    el.myFeedback.style.display='none';
     el.optsWrap.querySelectorAll('.opt').forEach((node,i) => {
       node.classList.remove('disabled');
       if (i===data.correctIndex) node.classList.add('correct');
