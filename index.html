@@ -39,6 +39,7 @@
   .card.snake{ color:#3FE0FF; }
   .card.flappy{ color:var(--amber); }
   .card.buzzer{ color:#FF5D5D; }
+  .card.tetris{ color:#D45DFF; }
   footer{ width:100%; max-width:920px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
   footer b{ color:var(--phosphor); }
 </style>
@@ -81,6 +82,12 @@
       <div class="desc" data-key="buzzerDesc">Pełny quiz z pytaniami i odpowiedziami. Kto pierwszy trafi poprawną, zdobywa punkt.</div>
       <div class="players" data-key="buzzerPlayers">DOWOLNIE WIELU GRACZY</div>
     </a>
+    <a class="card tetris" href="tetris.html">
+      <span class="icon">🧱</span>
+      <div class="title">TETRIS</div>
+      <div class="desc" data-key="tetrisDesc">Klasyczne klocki. Steruj z telefonu, buduj pełne linie, poziom rośnie z czasem.</div>
+      <div class="players" data-key="tetrisPlayers">1 GRACZ</div>
+    </a>
   </div>
 </main>
 <footer id="footerText">Każda gra ma własny ekran (do projektora) i osobną stronę-kontroler otwieraną po zeskanowaniu kodu QR telefonem.</footer>
@@ -96,14 +103,16 @@
       pongDesc:'Klasyczna gra w paletki. Telefon steruje pionową paletką.', pongPlayers:'1 GRACZ (VS CPU) LUB 2 GRACZY',
       snakeDesc:'Zjadaj jabłka, rośnij, unikaj ściany i siebie. Pad 4-kierunkowy.', snakePlayers:'1 GRACZ LUB 2 GRACZY',
       flappyDesc:'Stukaj, żeby lecieć. Unikaj rur. Jeden przycisk skoku.', flappyPlayers:'1 GRACZ LUB DOWOLNIE WIELU',
-      buzzerDesc:'Pełny quiz z pytaniami i odpowiedziami. Kto pierwszy trafi poprawną, zdobywa punkt.', buzzerPlayers:'DOWOLNIE WIELU GRACZY'
+      buzzerDesc:'Pełny quiz z pytaniami i odpowiedziami. Kto pierwszy trafi poprawną, zdobywa punkt.', buzzerPlayers:'DOWOLNIE WIELU GRACZY',
+      tetrisDesc:'Klasyczne klocki. Steruj z telefonu, buduj pełne linie, poziom rośnie z czasem.', tetrisPlayers:'1 GRACZ'
     }, en:{
       subtitle:'pick a game — each opens on its own page',
       footer:'Each game has its own screen (for the projector) and a separate controller page opened by scanning the QR code with a phone.',
       pongDesc:'Classic paddle game. The phone controls a vertical paddle.', pongPlayers:'1 PLAYER (VS CPU) OR 2 PLAYERS',
       snakeDesc:'Eat apples, grow, avoid the wall and yourself. 4-direction pad.', snakePlayers:'1 PLAYER OR 2 PLAYERS',
       flappyDesc:'Tap to fly. Avoid the pipes. One jump button.', flappyPlayers:'1 PLAYER OR ANY NUMBER',
-      buzzerDesc:'Full quiz with questions and answers. First correct answer scores the point.', buzzerPlayers:'ANY NUMBER OF PLAYERS'
+      buzzerDesc:'Full quiz with questions and answers. First correct answer scores the point.', buzzerPlayers:'ANY NUMBER OF PLAYERS',
+      tetrisDesc:'Classic falling blocks. Control from your phone, clear full lines, level speeds up over time.', tetrisPlayers:'1 PLAYER'
     } };
   let lang='pl';
   function renderTexts(){
