@@ -69,6 +69,7 @@
     border-radius:6px; padding:10px 12px; outline:none;
   }
   #inputName::placeholder{ color:var(--phosphor-dim); opacity:0.7; }
+  #nickHint{ margin:0 16px 8px; padding:8px 10px; border:1px solid var(--amber); border-radius:6px; background:rgba(255,176,0,0.08); color:var(--amber); font-size:10.5px; letter-spacing:0.3px; text-align:center; line-height:1.4; }
   #inputName:focus{ border-color:var(--phosphor); }
 
   #colorRow{ display:flex; gap:8px; padding:0 16px 10px; flex-shrink:0; justify-content:center; }
@@ -88,6 +89,7 @@
 </header>
 
 <div class="status-row"><div class="dot connecting" id="dot"></div><span id="statusLabel">Łączenie z ekranem…</span></div>
+<div id="nickHint">✏️ Podaj swój nick — inaczej pojawisz się w wynikach jako „?”</div>
 <div id="nameRow"><input type="text" id="inputName" maxlength="16" placeholder="Twoje imię (opcjonalnie)"></div>
 <div id="colorRow"></div>
 <div id="hint">Trzymaj wciśnięty przycisk, żeby przesuwać paletkę na ekranie. Puść, żeby zatrzymać.</div>
@@ -119,7 +121,8 @@
       errorPrefix: 'Błąd: ',
       hint: 'Trzymaj wciśnięty przycisk, żeby przesuwać paletkę na ekranie. Puść, żeby zatrzymać.',
       up: 'GÓRA', down: 'DÓŁ',
-      namePlaceholder: 'Twoje imię (opcjonalnie)'
+      namePlaceholder: 'Twoje imię (opcjonalnie)',
+      nickHint: '✏️ Podaj swój nick — inaczej pojawisz się w wynikach jako „?”'
     },
     en: {
       connecting: 'Connecting to screen…',
@@ -132,7 +135,8 @@
       errorPrefix: 'Error: ',
       hint: 'Hold the button to move your paddle on the screen. Release to stop.',
       up: 'UP', down: 'DOWN',
-      namePlaceholder: 'Your name (optional)'
+      namePlaceholder: 'Your name (optional)',
+      nickHint: '✏️ Enter your nickname — otherwise you\u2019ll show up as \u201c?\u201d in the results'
     }
   };
   let lang = 'pl';
@@ -141,7 +145,7 @@
   function renderStatus(){ el.statusLabel.textContent = t(statusState); }
   function renderStaticTexts(){
     el.hint.textContent = t('hint');
-    el.inputName.placeholder = t('namePlaceholder');
+    el.inputName.placeholder = t('namePlaceholder'); el.nickHint.textContent = t('nickHint');
     el.padUp.innerHTML = '<span class="arrow">▲</span>' + t('up');
     el.padDown.innerHTML = '<span class="arrow">▼</span>' + t('down');
     renderStatus();
