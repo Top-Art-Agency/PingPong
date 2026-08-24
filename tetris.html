@@ -125,13 +125,13 @@
 
   const STR = { pl:{
       subtitle:'zeskanuj kod QR telefonem, żeby zostać kontrolerem', overlayQrTitle:'ZESKANUJ, ŻEBY DOŁĄCZYĆ',
-      waitingOne:'Czekam na telefon…', connectedOne:'Telefon połączony', disconnected:'Telefon rozłączony — odśwież stronę',
+      waitingOne:'Czekam na telefon…', waitingName:'Podaj swój nick na telefonie, żeby zacząć', connectedOne:'Telefon połączony', disconnected:'Telefon rozłączony — odśwież stronę',
       gameOver:'KONIEC GRY', startingIn:'Zaczynamy za...',
       score:'WYNIK', level:'POZIOM', lines:'LINIE', next:'NASTĘPNY',
       footer:'Steruj klockami z telefonu. Pełne linie znikają i dają punkty — im wyższy poziom, tym szybciej spadają klocki.'
     }, en:{
       subtitle:'scan the QR code with your phone to become a controller', overlayQrTitle:'SCAN TO JOIN',
-      waitingOne:'Waiting for phone…', connectedOne:'Phone connected', disconnected:'Phone disconnected — refresh the page',
+      waitingOne:'Waiting for phone…', waitingName:'Enter your nickname on your phone to start', connectedOne:'Phone connected', disconnected:'Phone disconnected — refresh the page',
       gameOver:'GAME OVER', startingIn:'Starting in...',
       score:'SCORE', level:'LEVEL', lines:'LINES', next:'NEXT',
       footer:'Control the pieces from your phone. Full lines clear and score points — the higher the level, the faster pieces fall.'
@@ -190,6 +190,14 @@
   }
 
   // ---- WebRTC ----
+  function renderReady(){
+    const ready = !!conn && !!playerName;
+    statusState = !conn ? 'waitingOne' : (playerName ? 'connectedOne' : 'waitingName');
+    el.dot.className = 'dot ' + (ready ? 'connected' : 'waiting');
+    renderStatus();
+    if (ready && overlayState==='qr'){ beginCountdown(); }
+    else if (!ready && (overlayState==='qr'||overlayState==='countdown')){ cancelCountdown(); overlayState='qr'; renderOverlay(); }
+  }
   const peer = new Peer();
   peer.on('open', (id) => {
     const dir = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')+1);
@@ -202,13 +210,13 @@
     if (conn){ c.send({type:'full'}); setTimeout(()=>c.close(),300); return; }
     conn = c;
     conn.on('open', () => {
-      statusState='connectedOne'; el.dot.className='dot connected'; renderStatus();
-      if (overlayState==='qr'){ beginCountdown(); }
+      el.dot.className='dot waiting'; renderReady();
     });
     conn.on('data', (data) => {
       if (!data) return;
       if (data.name !== undefined) playerName = data.name ? data.name.trim().slice(0,16) : null;
       if (data.color !== undefined) playerColor = data.color || null;
+      renderReady();
       if (data.type==='hold'){ held.left = !!data.left; held.right = !!data.right; held.down = !!data.down; }
       if (data.type==='action' && running){
         if (data.action==='rotate') tryRotate();
@@ -216,7 +224,7 @@
       }
     });
     conn.on('close', () => {
-      conn=null; statusState='disconnected'; el.dot.className='dot waiting'; renderStatus();
+      conn=null; playerName=null; playerColor=null; statusState='disconnected'; el.dot.className='dot waiting'; renderStatus();
       running=false; backToWaiting();
     });
   });
