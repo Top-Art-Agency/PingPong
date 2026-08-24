@@ -130,7 +130,7 @@
 
   const STR = { pl:{
       subtitle:'zeskanuj kod QR telefonem, żeby zostać kontrolerem', overlayQrTitle:'ZESKANUJ, ŻEBY DOŁĄCZYĆ',
-      waitingOne:'Czekam na telefon…', waitingP1:'Czekam na Gracza 1…', waitingP2:'Gracz 1 połączony · czekam na Gracza 2…',
+      waitingOne:'Czekam na telefon…', waitingName:'Podaj swój nick na telefonie, żeby zacząć', waitingP1:'Czekam na Gracza 1…', waitingP2:'Gracz 1 połączony · czekam na Gracza 2…',
       connectedOne:'Telefon połączony', connectedBoth:'Obaj gracze połączeni', disconnected:'Telefon rozłączony — odśwież stronę',
       won:'WYGRANA!', lost:'KONIEC GRY', p1win:'WYGRAŁ GRACZ 1', p2win:'WYGRAŁ GRACZ 2', draw:'REMIS!',
       wonSub:'Nowy wynik.', lostSub:'Spróbuj ponownie.', p1winSub:'Gracz 1 przetrwał dłużej.', p2winSub:'Gracz 2 przetrwał dłużej.', drawSub:'Obaj zginęli jednocześnie.',
@@ -140,7 +140,7 @@
       footer2p:'Dwa węże na jednej planszy. Uderzenie w ścianę, siebie albo przeciwnika kończy rundę dla tego gracza.'
     }, en:{
       subtitle:'scan the QR code with your phone to become a controller', overlayQrTitle:'SCAN TO JOIN',
-      waitingOne:'Waiting for phone…', waitingP1:'Waiting for Player 1…', waitingP2:'Player 1 connected · waiting for Player 2…',
+      waitingOne:'Waiting for phone…', waitingName:'Enter your nickname on your phone to start', waitingP1:'Waiting for Player 1…', waitingP2:'Player 1 connected · waiting for Player 2…',
       connectedOne:'Phone connected', connectedBoth:'Both players connected', disconnected:'Phone disconnected — refresh the page',
       won:'NEW SCORE!', lost:'GAME OVER', p1win:'PLAYER 1 WINS', p2win:'PLAYER 2 WINS', draw:'DRAW!',
       wonSub:'New score.', lostSub:'Try again.', p1winSub:'Player 1 survived longer.', p2winSub:'Player 2 survived longer.', drawSub:'Both died at the same time.',
@@ -216,9 +216,18 @@
   function backToWaiting(){ cancelCountdown(); cancelAutoRestart(); overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden'); }
 
   function updateReadyState(){
-    const p1=!!slots[1], p2=!!slots[2]; let ready;
-    if (mode==='1p'){ ready=p1; statusState = ready?'connectedOne':'waitingOne'; }
-    else { ready = p1&&p2; statusState = ready?'connectedBoth':(p1?'waitingP2':'waitingP1'); }
+    const p1=!!slots[1], p2=!!slots[2];
+    const p1n = p1 && !!names[1], p2n = p2 && !!names[2];
+    let ready;
+    if (mode==='1p'){ ready=p1n; statusState = !p1 ? 'waitingOne' : (p1n?'connectedOne':'waitingName'); }
+    else {
+      ready = p1n && p2n;
+      if (!p1) statusState='waitingP1';
+      else if (!p1n) statusState='waitingName';
+      else if (!p2) statusState='waitingP2';
+      else if (!p2n) statusState='waitingName';
+      else statusState='connectedBoth';
+    }
     el.dot.className = 'dot '+(ready?'connected':'waiting');
     renderStatus();
     if (ready && overlayState==='qr'){ beginCountdown(); }
@@ -245,7 +254,7 @@
       conn.on('data', (data) => {
         if (!data) return;
         if (data.type==='dir'){ setDir(slot, data.dir); }
-        if (data.name !== undefined){ const c = data.name?data.name.trim().slice(0,16):null; if(names[slot]!==c){names[slot]=c; renderModeLabels();} }
+        if (data.name !== undefined){ const c = data.name?data.name.trim().slice(0,16):null; if(names[slot]!==c){names[slot]=c; renderModeLabels(); updateReadyState();} }
         if (data.color !== undefined && colors[slot] !== data.color){ colors[slot] = data.color; }
       });
       conn.on('close', () => {
