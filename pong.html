@@ -240,6 +240,7 @@
       subtitle: 'zeskanuj kod QR telefonem, żeby zostać kontrolerem',
       overlayQrTitle: 'ZESKANUJ, ŻEBY DOŁĄCZYĆ',
       waitingOne: 'Czekam na telefon…',
+      waitingName: 'Podaj swój nick na telefonie, żeby zacząć',
       waitingP1: 'Czekam na Gracza 1…',
       waitingP2: 'Gracz 1 połączony · czekam na Gracza 2…',
       connectedOne: 'Telefon połączony',
@@ -269,6 +270,7 @@
       subtitle: 'scan the QR code with your phone to become a controller',
       overlayQrTitle: 'SCAN TO JOIN',
       waitingOne: 'Waiting for phone…',
+      waitingName: 'Enter your nickname on your phone to start',
       waitingP1: 'Waiting for Player 1…',
       waitingP2: 'Player 1 connected · waiting for Player 2…',
       connectedOne: 'Phone connected',
@@ -463,13 +465,19 @@
   function updateReadyState(){
     const p1ok = !!slots[1];
     const p2ok = !!slots[2];
+    const p1named = p1ok && !!names[1];
+    const p2named = p2ok && !!names[2];
     let ready;
     if (state.mode === '1p'){
-      ready = p1ok;
-      statusState = ready ? 'connectedOne' : 'waitingOne';
+      ready = p1named;
+      statusState = !p1ok ? 'waitingOne' : (p1named ? 'connectedOne' : 'waitingName');
     } else {
-      ready = p1ok && p2ok;
-      statusState = ready ? 'connectedBoth' : (p1ok ? 'waitingP2' : 'waitingP1');
+      ready = p1named && p2named;
+      if (!p1ok) statusState = 'waitingP1';
+      else if (!p1named) statusState = 'waitingName';
+      else if (!p2ok) statusState = 'waitingP2';
+      else if (!p2named) statusState = 'waitingName';
+      else statusState = 'connectedBoth';
     }
     el.dot.className = 'dot ' + (ready ? 'connected' : 'waiting');
     renderStatus();
@@ -526,7 +534,7 @@
           else { inputUp2 = !!data.up; inputDown2 = !!data.down; }
           if (data.name !== undefined){
             const cleanName = data.name ? data.name.trim().slice(0, 16) : null;
-            if (names[slot] !== cleanName){ names[slot] = cleanName; renderModeLabels(); }
+            if (names[slot] !== cleanName){ names[slot] = cleanName; renderModeLabels(); updateReadyState(); }
           }
           if (data.color !== undefined && colors[slot] !== data.color){
             colors[slot] = data.color; renderModeLabels();
