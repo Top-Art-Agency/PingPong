@@ -25,6 +25,7 @@
   #nameRow{ padding:0 16px 8px; flex-shrink:0; }
   #inputName{ width:100%; font-family:'Space Mono', monospace; font-size:14px; background:rgba(53,255,110,0.04); color:var(--phosphor); border:1px solid var(--phosphor-dim); border-radius:6px; padding:10px 12px; outline:none; }
   #inputName::placeholder{ color:var(--phosphor-dim); opacity:0.7; }
+  #nickHint{ margin:0 16px 8px; padding:8px 10px; border:1px solid var(--amber); border-radius:6px; background:rgba(255,176,0,0.08); color:var(--amber); font-size:10.5px; letter-spacing:0.3px; text-align:center; line-height:1.4; }
   #colorRow{ display:flex; gap:8px; padding:0 16px 8px; flex-shrink:0; justify-content:center; }
   .swatch{ width:26px; height:26px; border-radius:50%; border:2px solid rgba(255,255,255,0.15); cursor:pointer; flex-shrink:0; transition:transform .1s, border-color .1s; }
   .swatch.selected{ border-color:#fff; transform:scale(1.15); box-shadow:0 0 10px currentColor; }
@@ -49,6 +50,7 @@
   </div>
 </header>
 <div class="status-row"><div class="dot connecting" id="dot"></div><span id="statusLabel">Łączenie z ekranem…</span></div>
+<div id="nickHint">✏️ Podaj swój nick — inaczej pojawisz się w wynikach jako „?”</div>
 <div id="nameRow"><input type="text" id="inputName" maxlength="16" placeholder="Twoje imię (opcjonalnie)"></div>
 <div id="colorRow"></div>
 <div id="pads">
@@ -65,19 +67,21 @@
 (() => {
   const $ = id => document.getElementById(id);
   const el = { dot:$('dot'), statusLabel:$('statusLabel'), btnLang:$('btnLang'), btnTheme:$('btnTheme'),
-    btnFullscreen:$('btnFullscreen'), inputName:$('inputName'), colorRow:$('colorRow'),
+    btnFullscreen:$('btnFullscreen'), inputName:$('inputName'), nickHint:$('nickHint'), colorRow:$('colorRow'),
     btnRotate:$('btnRotate'), btnLeft:$('btnLeft'), btnRight:$('btnRight'), btnDown:$('btnDown'), btnHard:$('btnHard') };
 
   const STR = { pl:{ connecting:'Łączenie z ekranem…', connected:'Połączono z ekranem', full:'Ekran jest już pełny — spróbuj później',
       disconnected:'Rozłączono — odśwież stronę', noCode:'Brak kodu ekranu w linku — zeskanuj QR jeszcze raz',
-      errorPrefix:'Błąd: ', namePlaceholder:'Twoje imię (opcjonalnie)' },
+      errorPrefix:'Błąd: ', namePlaceholder:'Twoje imię (opcjonalnie)',
+      nickHint:'✏️ Podaj swój nick — inaczej pojawisz się w wynikach jako „?”' },
     en:{ connecting:'Connecting to screen…', connected:'Connected to screen', full:'Screen is already full — try again later',
       disconnected:'Disconnected — refresh the page', noCode:'No screen code in the link — scan the QR again',
-      errorPrefix:'Error: ', namePlaceholder:'Your name (optional)' } };
+      errorPrefix:'Error: ', namePlaceholder:'Your name (optional)',
+      nickHint:'✏️ Enter your nickname — otherwise you will show up as "?" in the results' } };
   let lang='pl', statusState='connecting';
   function t(k){ return STR[lang][k]; }
   function renderStatus(){ el.statusLabel.textContent = t(statusState); }
-  function renderStaticTexts(){ el.inputName.placeholder = t('namePlaceholder'); renderStatus(); }
+  function renderStaticTexts(){ el.inputName.placeholder = t('namePlaceholder'); el.nickHint.textContent = t('nickHint'); renderStatus(); }
   el.btnLang.addEventListener('click', () => { lang=lang==='pl'?'en':'pl'; el.btnLang.textContent=lang==='pl'?'EN':'PL'; renderStaticTexts(); });
   el.btnTheme.addEventListener('click', () => { document.body.classList.toggle('light'); el.btnTheme.textContent = document.body.classList.contains('light')?'☀️':'🌙'; });
   el.btnFullscreen.addEventListener('click', () => { if(!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(()=>{});} else { document.exitFullscreen().catch(()=>{});} });
