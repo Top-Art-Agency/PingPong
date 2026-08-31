@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>FLAPPY — Ekran</title>
+<title>TETRIS — Ekran</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
   :root{ --phosphor:#35FF6E; --phosphor-dim:#1B7A38; --bg:#050807; --bg2:#0A120D; --amber:#FFB000; --line:rgba(53,255,110,0.18); --scan-op:0.18; --vig-op:0.65; }
@@ -21,17 +21,26 @@
   .icon-btn{ font-family:'Space Mono', monospace; font-size:11px; background:transparent; color:var(--phosphor); border:1px solid var(--phosphor-dim); padding:8px 10px; border-radius:4px; cursor:pointer; min-width:38px; }
   .icon-btn:hover{ background:rgba(53,255,110,0.08); border-color:var(--phosphor); }
   main{ width:100%; max-width:920px; padding:16px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+
+  .topRow{ display:flex; align-items:center; justify-content:center; gap:28px; flex-wrap:wrap; }
+  .scoreblock{ text-align:center; }
   .scoreboard{ font-family:'Press Start 2P', monospace; font-size:clamp(28px, 6vw, 46px); text-shadow:0 0 10px currentColor; color:var(--phosphor); }
-  #bestRow{ font-size:11px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:2px; text-align:center; }
-  #gameWrap{ position:relative; width:100%; max-width:520px; aspect-ratio:3/4; border:2px solid var(--phosphor-dim); border-radius:6px; box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06); background:linear-gradient(var(--bg2), var(--bg2)) padding-box; overflow:hidden; }
-  #fullscreenArea:fullscreen, #fullscreenArea:-webkit-full-screen{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:var(--bg); width:100vw; height:100vh; padding:20px; }
-  #fullscreenArea:fullscreen #gameWrap, #fullscreenArea:-webkit-full-screen #gameWrap{ max-width:none; width:min(94vw, calc(88vh * 3 / 4)); height:min(88vh, calc(94vw * 4 / 3)); }
+  .scoreblock .lbl{ font-size:10px; color:var(--phosphor-dim); letter-spacing:2px; margin-top:2px; }
+  .statBlock{ text-align:center; font-size:11px; color:var(--phosphor-dim); letter-spacing:1px; }
+  .statBlock b{ display:block; font-family:'Press Start 2P', monospace; font-size:16px; color:var(--phosphor); margin-bottom:2px; text-shadow:0 0 6px currentColor; }
+  #nextBox{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  #nextBox .lbl{ font-size:10px; color:var(--phosphor-dim); letter-spacing:2px; }
+  #nextCanvas{ background:var(--bg2); border:1px solid var(--phosphor-dim); border-radius:6px; }
+
+  #fullscreenArea{ display:flex; flex-direction:column; align-items:center; gap:18px; width:100%; }
+
+  #gameWrap{ position:relative; width:100%; max-width:320px; aspect-ratio: 1 / 2; border:2px solid var(--phosphor-dim); border-radius:6px; box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06); background:linear-gradient(var(--bg2), var(--bg2)) padding-box; overflow:hidden; }
   canvas{ display:block; width:100%; height:100%; }
   #overlayMsg{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; background:rgba(5,8,7,0.92); font-family:'Press Start 2P', monospace; font-size:14px; letter-spacing:1px; padding:24px; z-index:5; }
   body.light #overlayMsg{ background:rgba(238,243,238,0.95); }
-  #overlayMsg .small{ font-family:'Space Mono', monospace; font-size:12px; color:var(--phosphor-dim); letter-spacing:0.5px; max-width:380px; line-height:1.7; }
+  #overlayMsg .small{ font-family:'Space Mono', monospace; font-size:12px; color:var(--phosphor-dim); letter-spacing:0.5px; max-width:280px; line-height:1.7; }
   #overlayMsg.hidden{ display:none; }
-  #overlayMsg.countdown-mode #qrBox, #overlayMsg.countdown-mode .status-row, #overlayMsg.countdown-mode #playerList{ display:none; }
+  #overlayMsg.countdown-mode #qrBox, #overlayMsg.countdown-mode .status-row{ display:none; }
   #overlayTitle.countdown-number{ font-size:64px; }
   #qrBox{ background:#EAFFF0; padding:14px; border-radius:8px; box-shadow:0 0 24px rgba(53,255,110,0.35); }
   .status-row{ display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:0.5px; }
@@ -39,27 +48,26 @@
   .dot.waiting{ background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite; }
   .dot.connected{ background:var(--phosphor); box-shadow:0 0 8px var(--phosphor); }
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
-  #playerList{ font-size:10px; color:var(--phosphor-dim); max-width:380px; line-height:1.8; }
-  .controls-panel{ width:100%; max-width:520px; display:grid; grid-template-columns:1fr; gap:14px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); }
-  .ctrl-group label{ font-size:10px; letter-spacing:0.5px; color:var(--phosphor-dim); }
-  .seg-row{ display:flex; gap:6px; }
-  .seg-btn{ flex:1; font-size:9px; padding:8px 4px; border:1px solid var(--phosphor-dim); color:var(--phosphor-dim); background:transparent; border-radius:4px; }
-  .seg-btn.active{ color:var(--phosphor); border-color:var(--phosphor); box-shadow:0 0 8px rgba(53,255,110,0.25); }
-  footer{ width:100%; max-width:520px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
-  footer b{ color:var(--phosphor); }
-  .ranking-panel{ width:100%; max-width:520px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); margin-bottom:4px; }
+
+  #fullscreenArea:fullscreen, #fullscreenArea:-webkit-full-screen{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:var(--bg); width:100vw; height:100vh; padding:20px; }
+  #fullscreenArea:fullscreen #gameWrap, #fullscreenArea:-webkit-full-screen #gameWrap{ max-width:none; width:min(46vw, calc(88vh / 2)); height:min(88vh, calc(46vw * 2)); }
+
+  .ranking-panel{ width:100%; max-width:720px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); }
   .ranking-panel h3{ font-size:11px; letter-spacing:1px; color:var(--phosphor-dim); margin-bottom:10px; font-weight:normal; display:flex; justify-content:space-between; align-items:center; }
   .ranking-panel h3 a{ color:var(--phosphor); text-decoration:none; font-size:10px; border-bottom:1px dotted var(--phosphor); }
   .rank-row{ display:flex; justify-content:space-between; font-size:12px; padding:5px 8px; border-radius:4px; background:rgba(53,255,110,0.03); margin-bottom:4px; }
   .rank-row .n{ color:var(--phosphor); }
   .rank-row .s{ color:var(--amber); font-family:'Press Start 2P', monospace; font-size:11px; }
   .rank-row.empty{ color:var(--phosphor-dim); font-style:italic; background:none; }
+
+  footer{ width:100%; max-width:720px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
+  footer b{ color:var(--phosphor); }
 </style>
 </head>
 <body>
 <header>
   <div>
-    <div class="logo"><span>FLAPPY</span></div>
+    <div class="logo"><span>TETRIS</span></div>
     <div class="subtitle" id="txtSubtitle">zeskanuj kod QR telefonem, żeby zostać kontrolerem</div>
   </div>
   <div class="toolbar">
@@ -70,300 +78,285 @@
 </header>
 <main>
   <div id="fullscreenArea">
-  <div>
-    <div class="scoreboard" id="scoreBoard">0</div>
-    <div id="bestRow">NAJLEPSZY: 0</div>
-  </div>
-  <div id="gameWrap">
-    <canvas id="game"></canvas>
-    <div id="overlayMsg">
-      <div id="overlayTitle">ZESKANUJ, ŻEBY DOŁĄCZYĆ</div>
-      <div id="qrBox"><div id="qrCanvas"></div></div>
-      <div class="status-row"><div class="dot waiting" id="dot"></div><span id="statusLabel">Czekam na telefon…</span></div>
-      <div id="playerList"></div>
-      <div id="countdownSub" class="small" style="display:none;"></div>
+    <div class="topRow">
+      <div class="scoreblock">
+        <div class="scoreboard" id="scoreVal">0</div>
+        <div class="lbl" id="lblScore">WYNIK</div>
+      </div>
+      <div class="statBlock"><b id="levelVal">1</b><span id="lblLevel">POZIOM</span></div>
+      <div class="statBlock"><b id="linesVal">0</b><span id="lblLines">LINIE</span></div>
+      <div id="nextBox"><span class="lbl" id="lblNext">NASTĘPNY</span><canvas id="nextCanvas" width="80" height="80"></canvas></div>
     </div>
-  </div>
-  </div>
-  <div class="controls-panel">
-    <div class="ctrl-group">
-      <label id="lblMode">Tryb gry</label>
-      <div class="seg-row">
-        <button class="seg-btn active" id="modeBtn1p">1 GRACZ</button>
-        <button class="seg-btn" id="modeBtnMulti">WIELU GRACZY</button>
+
+    <div id="gameWrap">
+      <canvas id="game"></canvas>
+      <div id="overlayMsg">
+        <div id="overlayTitle">ZESKANUJ, ŻEBY DOŁĄCZYĆ</div>
+        <div id="qrBox"><div id="qrCanvas"></div></div>
+        <div class="status-row"><div class="dot waiting" id="dot"></div><span id="statusLabel">Czekam na telefon…</span></div>
+        <div id="countdownSub" class="small" style="display:none;"></div>
       </div>
     </div>
   </div>
+
   <div class="ranking-panel">
-    <h3><span id="lblRankingPanel">TOP 5 — FLAPPY</span><a id="linkFullRanking" href="https://top-art-agency.github.io/ranking-gier/" target="_blank">Pełny ranking →</a></h3>
+    <h3><span id="lblRankingPanel">TOP 5 — TETRIS</span><a id="linkFullRanking" href="https://top-art-agency.github.io/ranking-gier/" target="_blank">Pełny ranking →</a></h3>
     <div id="rankList"><div class="rank-row empty">Ładowanie…</div></div>
   </div>
 
-  <footer id="footerText">Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.</footer>
+  <footer id="footerText">Steruj klockami z telefonu. Pełne linie znikają i dają punkty — im wyższy poziom, tym szybciej spadają klocki.</footer>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://top-art-agency.github.io/ranking-gier/scores.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
   const el = {
     overlay:$('overlayMsg'), overlayTitle:$('overlayTitle'), dot:$('dot'), statusLabel:$('statusLabel'),
-    qrCanvas:$('qrCanvas'), scoreBoard:$('scoreBoard'), bestRow:$('bestRow'), canvas:$('game'),
-    btnLang:$('btnLang'), btnTheme:$('btnTheme'), btnFullscreen:$('btnFullscreen'), txtSubtitle:$('txtSubtitle'),
-    lblMode:$('lblMode'), modeBtn1p:$('modeBtn1p'), modeBtnMulti:$('modeBtnMulti'), footerText:$('footerText'),
-    playerList:$('playerList'), countdownSub:$('countdownSub')
+    qrCanvas:$('qrCanvas'), scoreVal:$('scoreVal'), levelVal:$('levelVal'), linesVal:$('linesVal'),
+    canvas:$('game'), nextCanvas:$('nextCanvas'),
+    btnLang:$('btnLang'), btnTheme:$('btnTheme'), btnFullscreen:$('btnFullscreen'),
+    txtSubtitle:$('txtSubtitle'), footerText:$('footerText'), countdownSub:$('countdownSub'),
+    lblScore:$('lblScore'), lblLevel:$('lblLevel'), lblLines:$('lblLines'), lblNext:$('lblNext')
   };
 
   const STR = { pl:{
       subtitle:'zeskanuj kod QR telefonem, żeby zostać kontrolerem', overlayQrTitle:'ZESKANUJ, ŻEBY DOŁĄCZYĆ',
       waitingOne:'Czekam na telefon…', waitingName:'Podaj swój nick na telefonie, żeby zacząć', connectedOne:'Telefon połączony', disconnected:'Telefon rozłączony — odśwież stronę',
-      lobbyJoin:'Dołącz teraz — runda zaczyna się za chwilę', gameOver:'KONIEC RUNDY', winner:'WYGRYWA',
-      waitingNameMulti:'Czekam, aż przynajmniej jeden gracz poda nick…',
-      best:'NAJLEPSZY', modeLabel:'Tryb gry', mode1p:'1 GRACZ', modeMulti:'WIELU GRACZY', startingIn:'Zaczynamy za...',
-      footer1p:'Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.',
-      footerMulti:'Każdy telefon steruje swoim ptakiem na tej samej planszy. Dołącz skanując kod QR — runda startuje po krótkim czasie na dołączanie. Kto przetrwa najdłużej, wygrywa.'
+      gameOver:'KONIEC GRY', startingIn:'Zaczynamy za...',
+      score:'WYNIK', level:'POZIOM', lines:'LINIE', next:'NASTĘPNY',
+      footer:'Steruj klockami z telefonu. Pełne linie znikają i dają punkty — im wyższy poziom, tym szybciej spadają klocki.'
     }, en:{
       subtitle:'scan the QR code with your phone to become a controller', overlayQrTitle:'SCAN TO JOIN',
       waitingOne:'Waiting for phone…', waitingName:'Enter your nickname on your phone to start', connectedOne:'Phone connected', disconnected:'Phone disconnected — refresh the page',
-      lobbyJoin:'Join now — round starts soon', gameOver:'ROUND OVER', winner:'WINS',
-      waitingNameMulti:'Waiting for at least one player to enter a nickname…',
-      best:'BEST', modeLabel:'Game mode', mode1p:'1 PLAYER', modeMulti:'MULTIPLAYER', startingIn:'Starting in...',
-      footer1p:'Tap to make the bird fly up. Avoid the pipes. Score a point for every pipe pair passed.',
-      footerMulti:'Each phone controls its own bird on the same board. Join by scanning the QR — the round starts after a short join window. Whoever survives longest wins.'
+      gameOver:'GAME OVER', startingIn:'Starting in...',
+      score:'SCORE', level:'LEVEL', lines:'LINES', next:'NEXT',
+      footer:'Control the pieces from your phone. Full lines clear and score points — the higher the level, the faster pieces fall.'
     } };
-  let lang='pl'; function t(k){ return STR[lang][k]; }
+  let lang = 'pl';
+  function t(k){ return STR[lang][k]; }
 
-  let mode='1p';
-  let overlayState='qr'; // qr | lobby | countdown | result
-  let countdownTimer=null, lobbyTimer=null, resultTimer=null, countdownN=3;
-  let bestScore=0;
+  let overlayState = 'qr'; // qr | countdown | gameover
+  let statusState = 'waitingOne';
+  let countdownTimer=null, autoRestartTimer=null, countdownN=3;
+  let conn = null, playerName=null, playerColor=null;
+  let bestScore = 0;
 
-  // 1p: single slot
-  let soloConn=null, soloName=null, soloColor=null;
-  // multi: unlimited
-  const players = new Map(); // connId -> {conn, name, bird}
+  function cancelCountdown(){ if(countdownTimer){clearInterval(countdownTimer); countdownTimer=null;} }
+  function cancelAutoRestart(){ if(autoRestartTimer){clearTimeout(autoRestartTimer); autoRestartTimer=null;} }
 
-  function cancelTimers(){
-    if(countdownTimer){clearInterval(countdownTimer); countdownTimer=null;}
-    if(lobbyTimer){clearInterval(lobbyTimer); lobbyTimer=null;}
-    if(resultTimer){clearTimeout(resultTimer); resultTimer=null;}
-  }
-
+  function renderStatus(){ el.statusLabel.textContent = t(statusState); }
   function renderOverlay(){
-    el.overlay.classList.toggle('countdown-mode', overlayState==='countdown');
-    el.overlayTitle.classList.toggle('countdown-number', overlayState==='countdown');
-    el.countdownSub.style.display = overlayState==='countdown' ? '' : 'none';
-    el.playerList.style.display = (overlayState==='lobby') ? '' : 'none';
-    if (overlayState==='qr'){ el.overlayTitle.textContent = t('overlayQrTitle'); el.statusLabel.textContent = t('waitingOne'); el.dot.className='dot waiting'; }
-    else if (overlayState==='lobby'){
-      el.overlayTitle.textContent = t('lobbyJoin');
-      el.dot.className='dot connected';
-      el.statusLabel.textContent = players.size + ' 🐤';
-      el.playerList.textContent = Array.from(players.values()).map(p=>p.name||'?').join(' · ');
+    if (overlayState==='countdown'){
+      el.overlayTitle.classList.add('countdown-number'); el.overlay.classList.add('countdown-mode');
+      el.overlayTitle.textContent = String(countdownN);
+      el.countdownSub.style.display=''; el.countdownSub.textContent = t('startingIn');
+      return;
     }
-    else if (overlayState==='countdown'){ el.overlayTitle.textContent = String(countdownN); el.countdownSub.textContent = t('startingIn'); }
-    else if (overlayState==='result'){
+    el.overlayTitle.classList.remove('countdown-number'); el.overlay.classList.remove('countdown-mode');
+    el.countdownSub.style.display='none';
+    if (overlayState==='qr'){ el.overlayTitle.textContent = t('overlayQrTitle'); }
+    else if (overlayState==='gameover'){
+      el.overlayTitle.textContent = t('gameOver');
       const sub = document.getElementById('gameoverSub');
-      if (sub) sub.textContent = '';
+      if (sub) sub.textContent = (playerName?playerName.toUpperCase()+' · ':'') + t('score') + ': ' + score;
     }
   }
   function renderStaticTexts(){
     el.txtSubtitle.textContent = t('subtitle');
-    el.lblMode.textContent = t('modeLabel');
-    el.modeBtn1p.textContent = t('mode1p');
-    el.modeBtnMulti.textContent = t('modeMulti');
-    el.footerText.textContent = mode==='multi' ? t('footerMulti') : t('footer1p');
-    el.bestRow.textContent = t('best') + ': ' + bestScore;
-    renderOverlay();
+    el.footerText.textContent = t('footer');
+    el.lblScore.textContent = t('score'); el.lblLevel.textContent = t('level');
+    el.lblLines.textContent = t('lines'); el.lblNext.textContent = t('next');
+    renderStatus(); renderOverlay();
   }
   el.btnLang.addEventListener('click', () => { lang=lang==='pl'?'en':'pl'; el.btnLang.textContent=lang==='pl'?'EN':'PL'; renderStaticTexts(); });
-  el.btnTheme.addEventListener('click', () => { document.body.classList.toggle('light'); el.btnTheme.textContent = document.body.classList.contains('light')?'☀️':'🌙'; });
+  el.btnTheme.addEventListener('click', () => { document.body.classList.toggle('light'); el.btnTheme.textContent = document.body.classList.contains('light')?'☀️':'🌙'; draw(); });
   el.btnFullscreen.addEventListener('click', () => { if(!document.fullscreenElement){ (document.getElementById('fullscreenArea')||document.documentElement).requestFullscreen().catch(()=>{});} else { document.exitFullscreen().catch(()=>{});} });
 
-  function setMode(m){
-    mode=m; el.modeBtn1p.classList.toggle('active', m==='1p'); el.modeBtnMulti.classList.toggle('active', m==='multi');
-    el.footerText.textContent = m==='multi' ? t('footerMulti') : t('footer1p');
-    cancelTimers(); overlayState='qr'; renderOverlay();
+  function beginCountdown(){
+    cancelCountdown(); cancelAutoRestart();
+    overlayState='countdown'; countdownN=3; el.overlay.classList.remove('hidden'); renderOverlay();
+    countdownTimer = setInterval(() => {
+      countdownN--;
+      if (countdownN<=0){ cancelCountdown(); startGame(); } else { renderOverlay(); }
+    }, 1000);
   }
-  el.modeBtn1p.addEventListener('click', ()=>setMode('1p'));
-  el.modeBtnMulti.addEventListener('click', ()=>setMode('multi'));
+  function backToWaiting(){
+    cancelCountdown(); cancelAutoRestart();
+    overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden');
+  }
 
   // ---- WebRTC ----
+  function renderReady(){
+    const ready = !!conn && !!playerName;
+    statusState = !conn ? 'waitingOne' : (playerName ? 'connectedOne' : 'waitingName');
+    el.dot.className = 'dot ' + (ready ? 'connected' : 'waiting');
+    renderStatus();
+    if (ready && overlayState==='qr'){ beginCountdown(); }
+    else if (!ready && (overlayState==='qr'||overlayState==='countdown')){ cancelCountdown(); overlayState='qr'; renderOverlay(); }
+  }
   const peer = new Peer();
   peer.on('open', (id) => {
     const dir = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')+1);
-    const url = new URL(dir + 'flappy-controller.html', window.location.origin);
+    const url = new URL(dir + 'tetris-controller.html', window.location.origin);
     url.searchParams.set('code', id);
     new QRCode(el.qrCanvas, { text:url.toString(), width:200, height:200, colorDark:'#0A120D', colorLight:'#EAFFF0' });
   });
   peer.on('error', (err) => { el.statusLabel.textContent = 'Error: '+err.type; });
-
-  peer.on('connection', (conn) => {
+  peer.on('connection', (c) => {
+    if (conn){ c.send({type:'full'}); setTimeout(()=>c.close(),300); return; }
+    conn = c;
     conn.on('open', () => {
-      if (mode==='1p'){
-        if (soloConn){ conn.send({type:'full'}); setTimeout(()=>conn.close(),300); return; }
-        soloConn = conn;
-        conn.on('data', (data) => {
-          if (!data) return;
-          if (data.type==='flap' && running) flap();
-          if (data.name !== undefined) soloName = data.name ? data.name.trim().slice(0,16) : null;
-          if (data.color !== undefined) soloColor = data.color || null;
-          renderSoloReady();
-        });
-        conn.on('close', () => { soloConn=null; soloName=null; running=false; overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden'); });
-        el.overlay.classList.remove('hidden');
-        renderSoloReady();
-      } else {
-        const id = conn.peer;
-        players.set(id, { conn, name:null, color:null, bird:null });
-        conn.on('data', (data) => {
-          if (!data) return;
-          if (data.name !== undefined){ const p=players.get(id); if(p) p.name = data.name ? data.name.trim().slice(0,16) : null; if(overlayState==='lobby') renderOverlay(); }
-          if (data.color !== undefined){ const p=players.get(id); if(p) p.color = data.color || null; }
-          if (data.type==='flap'){ const p=players.get(id); if (p && p.bird && p.bird.alive) flapBird(p.bird); }
-        });
-        conn.on('close', () => {
-          players.delete(id);
-          if (players.size===0 && (overlayState==='lobby' || overlayState==='countdown')){
-            cancelTimers(); overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden');
-          } else if (running && players.size===0){
-            running=false; cancelTimers();
-            overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden');
-          }
-        });
-        if (overlayState==='qr'){ beginLobbyMulti(); } else { renderOverlay(); }
+      el.dot.className='dot waiting'; renderReady();
+    });
+    conn.on('data', (data) => {
+      if (!data) return;
+      if (data.name !== undefined) playerName = data.name ? data.name.trim().slice(0,16) : null;
+      if (data.color !== undefined) playerColor = data.color || null;
+      renderReady();
+      if (data.type==='hold'){ held.left = !!data.left; held.right = !!data.right; held.down = !!data.down; }
+      if (data.type==='action' && running){
+        if (data.action==='rotate') tryRotate();
+        else if (data.action==='harddrop') hardDrop();
       }
+    });
+    conn.on('close', () => {
+      conn=null; playerName=null; playerColor=null; statusState='disconnected'; el.dot.className='dot waiting'; renderStatus();
+      running=false; backToWaiting();
     });
   });
 
-  function renderSoloReady(){
-    const ready = !!soloConn && !!soloName;
-    el.dot.className = 'dot ' + (ready ? 'connected' : 'waiting');
-    el.statusLabel.textContent = !soloConn ? t('waitingOne') : (soloName ? t('connectedOne') : t('waitingName'));
-    if (ready && overlayState==='qr'){ beginLobbySolo(); }
+  // ---- Ranking ----
+  function submitScoreToRanking(){
+    if (!window.ArcadeScores || !window.ArcadeScores.ready) return;
+    window.ArcadeScores.submit('tetris', playerName, score, playerColor);
   }
-  function beginLobbySolo(){
-    cancelTimers(); overlayState='countdown'; countdownN=3; el.overlay.classList.remove('hidden'); renderOverlay();
-    countdownTimer = setInterval(() => {
-      countdownN--;
-      if (countdownN<=0){ cancelTimers(); startSolo(); } else { renderOverlay(); }
-    }, 1000);
+  function initRankingPanel(){
+    const list = document.getElementById('rankList');
+    if (!window.ArcadeScores || !window.ArcadeScores.ready){
+      list.innerHTML = '<div class="rank-row empty">Ranking niedostępny — uzupełnij scores.js</div>';
+      return;
+    }
+    window.ArcadeScores.listenTop('tetris', 5, (rows) => {
+      if (!rows.length){ list.innerHTML = '<div class="rank-row empty">Brak wyników jeszcze</div>'; return; }
+      list.innerHTML = rows.map(r => '<div class="rank-row"><span class="n">'+(r.name||'?')+'</span><span class="s">'+r.score+'</span></div>').join('');
+    });
   }
-  function beginLobbyMulti(){
-    cancelTimers(); overlayState='lobby'; el.overlay.classList.remove('hidden'); renderOverlay();
-    let secs=8;
-    lobbyTimer = setInterval(() => {
-      secs--;
-      el.overlayTitle.textContent = t('lobbyJoin') + ' (' + secs + ')';
-      if (secs<=0){
-        clearInterval(lobbyTimer); lobbyTimer=null;
-        const anyNamed = Array.from(players.values()).some(p => !!p.name);
-        if (!anyNamed){
-          secs = 8;
-          el.overlayTitle.textContent = t('waitingNameMulti');
-          lobbyTimer = setInterval(() => {
-            const nowNamed = Array.from(players.values()).some(p => !!p.name);
-            if (nowNamed){
-              clearInterval(lobbyTimer); lobbyTimer=null;
-              overlayState='countdown'; countdownN=3; renderOverlay();
-              countdownTimer = setInterval(() => {
-                countdownN--;
-                if (countdownN<=0){ cancelTimers(); startMulti(); } else { renderOverlay(); }
-              }, 1000);
-            }
-          }, 500);
-          return;
-        }
-        overlayState='countdown'; countdownN=3; renderOverlay();
-        countdownTimer = setInterval(() => {
-          countdownN--;
-          if (countdownN<=0){ cancelTimers(); startMulti(); } else { renderOverlay(); }
-        }, 1000);
-      }
-    }, 1000);
-  }
+  initRankingPanel();
 
-  // ---- Flappy physics ----
+  // ---- Tetris core ----
+  const COLS=10, ROWS=20, CELL=24;
+  const W = COLS*CELL, H = ROWS*CELL;
   const ctx = el.canvas.getContext('2d');
-  const W=390, H=520;
   el.canvas.width=W; el.canvas.height=H;
-  const GRAV=0.35, FLAP_V=-6.5, PIPE_W=52, PIPE_GAP=155, PIPE_SPEED=2.6, PIPE_SPACING=210;
-  let running=false, pipes=[], distSinceSpawn=0;
-  let solo=null; // {y,vy,alive,score,x}
+  const nctx = el.nextCanvas.getContext('2d');
 
-  function newBird(){ return { x:80, y:H/2, vy:0, alive:true, score:0 }; }
-  function flap(){ if (solo && solo.alive) solo.vy = FLAP_V; }
-  function flapBird(b){ b.vy = FLAP_V; }
+  const SHAPES = {
+    I:{color:'#3FE0FF', m:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]]},
+    O:{color:'#FFB000', m:[[1,1],[1,1]]},
+    T:{color:'#D45DFF', m:[[0,1,0],[1,1,1],[0,0,0]]},
+    S:{color:'#35FF6E', m:[[0,1,1],[1,1,0],[0,0,0]]},
+    Z:{color:'#FF5D5D', m:[[1,1,0],[0,1,1],[0,0,0]]},
+    J:{color:'#5D8CFF', m:[[1,0,0],[1,1,1],[0,0,0]]},
+    L:{color:'#FF9E3F', m:[[0,0,1],[1,1,1],[0,0,0]]}
+  };
+  const KEYS = Object.keys(SHAPES);
 
-  function spawnPipe(){
-    const margin=50;
-    const gapY = margin + Math.random()*(H-2*margin-PIPE_GAP);
-    pipes.push({ x:W+20, gapY, passed:false });
+  function rotateCW(m){
+    const N = m.length;
+    const r = m.map(row => row.slice());
+    for (let y=0;y<N;y++) for (let x=0;x<N;x++) r[x][N-1-y] = m[y][x];
+    return r;
   }
-  function startSolo(){
-    el.overlay.classList.add('hidden');
-    solo = newBird(); pipes=[]; distSinceSpawn=0; spawnPipe(); running=true;
-    el.scoreBoard.textContent='0';
-  }
-  function startMulti(){
-    el.overlay.classList.add('hidden');
-    pipes=[]; distSinceSpawn=0; spawnPipe(); running=true;
-    players.forEach(p => { p.bird = p.name ? newBird() : null; });
-    el.scoreBoard.textContent='0';
+  function randomPiece(){
+    const k = KEYS[Math.floor(Math.random()*KEYS.length)];
+    return { key:k, color:SHAPES[k].color, m: SHAPES[k].m.map(r=>r.slice()) };
   }
 
-  function birdHitsPipe(b, p){
-    if (b.x+12 < p.x || b.x-12 > p.x+PIPE_W) return false;
-    if (b.y-12 < p.gapY || b.y+12 > p.gapY+PIPE_GAP) return true;
+  let board, cur, curX, curY, next, score, level, lines, running, held;
+  let gravityAcc=0, gravityMs=700, dasAcc={left:0,right:0}, softAcc=0;
+  const DAS_DELAY=170, DAS_REPEAT=50, SOFT_MS=35;
+
+  function newBoard(){ return Array.from({length:ROWS}, () => Array(COLS).fill(null)); }
+
+  function collides(m, ox, oy){
+    for (let y=0;y<m.length;y++) for (let x=0;x<m.length;x++){
+      if (!m[y][x]) continue;
+      const bx=ox+x, by=oy+y;
+      if (bx<0||bx>=COLS||by>=ROWS) return true;
+      if (by>=0 && board[by][bx]) return true;
+    }
     return false;
   }
-
-  function updatePhysics(){
+  function spawn(){
+    cur = next || randomPiece(); next = randomPiece();
+    curX = Math.floor((COLS - cur.m.length)/2); curY = -1;
+    if (collides(cur.m, curX, curY+1)){ endGame(); return; }
+    drawNext();
+  }
+  function tryRotate(){
     if (!running) return;
-    distSinceSpawn += PIPE_SPEED;
-    if (distSinceSpawn >= PIPE_SPACING){ distSinceSpawn=0; spawnPipe(); }
-    pipes.forEach(p => p.x -= PIPE_SPEED);
-    while (pipes.length && pipes[0].x < -PIPE_W-20) pipes.shift();
-
-    if (mode==='1p'){
-      if (solo && solo.alive){
-        solo.vy += GRAV; solo.y += solo.vy;
-        if (solo.y < 10 || solo.y > H-10) solo.alive=false;
-        pipes.forEach(p => {
-          if (!p.passed && p.x+PIPE_W < solo.x){ p.passed=true; solo.score++; }
-          if (birdHitsPipe(solo, p)) solo.alive=false;
-        });
-        el.scoreBoard.textContent = solo.score;
-        if (!solo.alive) endSolo();
-      }
-    } else {
-      let anyAlive=false;
-      players.forEach(p => {
-        const b=p.bird; if (!b || !b.alive) return;
-        anyAlive=true;
-        b.vy += GRAV; b.y += b.vy;
-        if (b.y<10 || b.y>H-10) b.alive=false;
-        pipes.forEach(pipe => {
-          if (!pipe.passed_multi_ && false) {}
-          if (birdHitsPipe(b, pipe)) b.alive=false;
-        });
-      });
-      pipes.forEach(pipe => {
-        if (!pipe.passed){
-          let anyPassed=false;
-          players.forEach(p => { if (p.bird && p.bird.alive && pipe.x+PIPE_W < p.bird.x) anyPassed=true; });
-          if (anyPassed){ pipe.passed=true; players.forEach(p => { if (p.bird && p.bird.alive) p.bird.score++; }); }
-        }
-      });
-      const maxScore = Math.max(0, ...Array.from(players.values()).map(p=>p.bird?p.bird.score:0));
-      el.scoreBoard.textContent = maxScore;
-      if (!anyAlive && players.size>0) endMulti();
+    const rotated = rotateCW(cur.m);
+    const kicks = [0,-1,1,-2,2];
+    for (const k of kicks){
+      if (!collides(rotated, curX+k, curY)){ cur.m = rotated; curX += k; return; }
     }
   }
+  function tryMove(dx){
+    if (!collides(cur.m, curX+dx, curY)) curX += dx;
+  }
+  function lockPiece(){
+    for (let y=0;y<cur.m.length;y++) for (let x=0;x<cur.m.length;x++){
+      if (cur.m[y][x]){
+        const by=curY+y, bx=curX+x;
+        if (by>=0) board[by][bx] = cur.color;
+      }
+    }
+    clearLines();
+    spawn();
+  }
+  function clearLines(){
+    let cleared=0;
+    for (let y=ROWS-1;y>=0;y--){
+      if (board[y].every(c=>c)){
+        board.splice(y,1); board.unshift(Array(COLS).fill(null));
+        cleared++; y++;
+      }
+    }
+    if (cleared>0){
+      const points = [0,100,300,500,800][cleared] || 800;
+      score += points; lines += cleared;
+      const newLevel = Math.floor(lines/10)+1;
+      if (newLevel !== level){ level = newLevel; gravityMs = Math.max(100, 700 - (level-1)*55); }
+      el.scoreVal.textContent = score; el.levelVal.textContent = level; el.linesVal.textContent = lines;
+    }
+  }
+  function softDropStep(){
+    if (!collides(cur.m, curX, curY+1)){ curY++; }
+    else { lockPiece(); }
+  }
+  function hardDrop(){
+    if (!running) return;
+    let dist=0;
+    while (!collides(cur.m, curX, curY+1)){ curY++; dist++; }
+    score += dist*2; el.scoreVal.textContent = score;
+    lockPiece();
+  }
 
+  held = { left:false, right:false, down:false };
+
+  function startGame(){
+    el.overlay.classList.add('hidden');
+    board = newBoard(); score=0; level=1; lines=0; gravityMs=700; gravityAcc=0;
+    dasAcc={left:0,right:0}; softAcc=0; held={left:false,right:false,down:false};
+    next = randomPiece();
+    el.scoreVal.textContent='0'; el.levelVal.textContent='1'; el.linesVal.textContent='0';
+    running = true;
+    spawn();
+  }
   // ---- Konfetti ----
   function fireConfetti(duration, count){
     duration = duration || 2200; count = count || 140;
@@ -401,85 +394,84 @@
     requestAnimationFrame(loop);
   }
 
-  function endSolo(){
+  function endGame(){
     running=false;
-    if (solo.score > bestScore){ bestScore = solo.score; el.bestRow.textContent = t('best')+': '+bestScore; if (solo.score>0) fireConfetti(); }
-    overlayState='result';
-    el.overlayTitle.textContent = t('gameOver');
+    if (score > bestScore){ bestScore = score; if (score>0) fireConfetti(); }
+    overlayState='gameover';
     if (!document.getElementById('gameoverSub')){
       const sub=document.createElement('div'); sub.id='gameoverSub'; sub.className='small';
       el.overlay.insertBefore(sub, el.countdownSub);
     }
-    document.getElementById('gameoverSub').textContent = (soloName?soloName.toUpperCase()+' · ':'') + 'SCORE: ' + solo.score;
+    renderOverlay();
     el.overlay.classList.remove('hidden');
-    if (window.ArcadeScores && window.ArcadeScores.ready) window.ArcadeScores.submit('flappy', soloName, solo.score, soloColor);
-    resultTimer = setTimeout(() => { if (soloConn){ beginLobbySolo(); } else { overlayState='qr'; renderOverlay(); } }, 4000);
-  }
-  function endMulti(){
-    running=false;
-    overlayState='result';
-    const arr = Array.from(players.values()).map(p => ({ name: p.name || '?', score: p.bird?p.bird.score:0 }));
-    arr.sort((a,b)=>b.score-a.score);
-    const top = arr.length ? arr[0].score : 0;
-    const winners = arr.filter(a=>a.score===top).map(a=>a.name.toUpperCase());
-    if (top > 0) fireConfetti();
-    el.overlayTitle.textContent = winners.join(' & ') + ' ' + t('winner');
-    if (!document.getElementById('gameoverSub')){
-      const sub=document.createElement('div'); sub.id='gameoverSub'; sub.className='small';
-      el.overlay.insertBefore(sub, el.countdownSub);
-    }
-    document.getElementById('gameoverSub').textContent = arr.map(a=>a.name+': '+a.score).join(' · ');
-    el.overlay.classList.remove('hidden');
-    if (window.ArcadeScores && window.ArcadeScores.ready){
-      players.forEach(p => { window.ArcadeScores.submit('flappy', p.name, p.bird?p.bird.score:0, p.color); });
-    }
-    resultTimer = setTimeout(() => { if (players.size>0){ beginLobbyMulti(); } else { overlayState='qr'; renderOverlay(); } }, 5000);
+    submitScoreToRanking();
+    cancelAutoRestart();
+    autoRestartTimer = setTimeout(() => { if (conn){ beginCountdown(); } else { backToWaiting(); } }, 4000);
   }
 
-  // ---- Ranking (Firebase, przez wspólny scores.js) ----
-  function initRankingPanel(){
-    const list = document.getElementById('rankList');
-    if (!window.ArcadeScores || !window.ArcadeScores.ready){
-      list.innerHTML = '<div class="rank-row empty">Ranking niedostępny — uzupełnij scores.js</div>';
-      return;
+  let prevHeld = { left:false, right:false };
+  function update(dt){
+    if (!running) return;
+    if (held.left && !prevHeld.left){ tryMove(-1); dasAcc.left = 0; }
+    else if (held.left){
+      dasAcc.left += dt;
+      if (dasAcc.left >= DAS_DELAY){ tryMove(-1); dasAcc.left -= DAS_REPEAT; }
     }
-    window.ArcadeScores.listenTop('flappy', 5, (rows) => {
-      if (!rows.length){ list.innerHTML = '<div class="rank-row empty">Brak wyników jeszcze</div>'; return; }
-      list.innerHTML = rows.map(r => '<div class="rank-row"><span class="n">'+(r.name||'?')+'</span><span class="s">'+r.score+'</span></div>').join('');
-    });
+    if (held.right && !prevHeld.right){ tryMove(1); dasAcc.right = 0; }
+    else if (held.right){
+      dasAcc.right += dt;
+      if (dasAcc.right >= DAS_DELAY){ tryMove(1); dasAcc.right -= DAS_REPEAT; }
+    }
+    prevHeld.left = held.left; prevHeld.right = held.right;
+
+    gravityAcc += dt;
+    const effGravity = held.down ? SOFT_MS : gravityMs;
+    if (gravityAcc >= effGravity){ gravityAcc = 0; softDropStep(); }
   }
-  initRankingPanel();
 
   function draw(){
-    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg2').trim() || '#0A120D';
-    ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle='rgba(53,255,110,0.35)'; ctx.lineWidth=3; ctx.shadowColor='#35FF6E'; ctx.shadowBlur=6;
-    pipes.forEach(p => {
-      ctx.strokeRect(p.x, 0, PIPE_W, p.gapY);
-      ctx.strokeRect(p.x, p.gapY+PIPE_GAP, PIPE_W, H-(p.gapY+PIPE_GAP));
-    });
-    ctx.shadowBlur=0;
-    if (mode==='1p' && solo){
-      const c = soloColor || '#35FF6E';
-      ctx.fillStyle = solo.alive ? c : 'rgba(120,120,120,0.6)';
-      ctx.shadowColor=c; ctx.shadowBlur = solo.alive?12:0;
-      ctx.beginPath(); ctx.arc(solo.x, solo.y, 12, 0, Math.PI*2); ctx.fill();
-      ctx.shadowBlur=0;
-    } else if (mode==='multi'){
-      const fallbackColors=['#35FF6E','#FFB000','#3FE0FF','#FF5D5D','#D45DFF','#FFEC5D'];
-      let i=0;
-      players.forEach(p => {
-        const b=p.bird; if (!b) return;
-        const color = p.color || fallbackColors[i%fallbackColors.length]; i++;
-        ctx.fillStyle = b.alive ? color : 'rgba(120,120,120,0.4)';
-        ctx.shadowColor=color; ctx.shadowBlur = b.alive?10:0;
-        ctx.beginPath(); ctx.arc(b.x, b.y, 11, 0, Math.PI*2); ctx.fill();
-        ctx.shadowBlur=0;
-      });
+    const bg2 = getComputedStyle(document.body).getPropertyValue('--bg2').trim() || '#0A120D';
+    ctx.fillStyle = bg2; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle = 'rgba(53,255,110,0.06)'; ctx.lineWidth=1;
+    for (let x=0;x<=COLS;x++){ ctx.beginPath(); ctx.moveTo(x*CELL,0); ctx.lineTo(x*CELL,H); ctx.stroke(); }
+    for (let y=0;y<=ROWS;y++){ ctx.beginPath(); ctx.moveTo(0,y*CELL); ctx.lineTo(W,y*CELL); ctx.stroke(); }
+    if (board) for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
+      if (board[y][x]){ drawCell(ctx, x, y, board[y][x]); }
+    }
+    if (running && cur) for (let y=0;y<cur.m.length;y++) for (let x=0;x<cur.m.length;x++){
+      if (cur.m[y][x] && curY+y>=0) drawCell(ctx, curX+x, curY+y, cur.color);
     }
   }
-  function loop(){ updatePhysics(); draw(); requestAnimationFrame(loop); }
-  draw(); requestAnimationFrame(loop);
+  function drawCell(c, x, y, color){
+    c.fillStyle = color; c.shadowColor = color; c.shadowBlur = 6;
+    c.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
+    c.shadowBlur = 0;
+  }
+  function drawNext(){
+    const bg2 = getComputedStyle(document.body).getPropertyValue('--bg2').trim() || '#0A120D';
+    nctx.fillStyle = bg2; nctx.fillRect(0,0,80,80);
+    if (!next) return;
+    const size = next.m.length; const cs = 16;
+    const offX = (80 - size*cs)/2, offY = (80 - size*cs)/2;
+    for (let y=0;y<size;y++) for (let x=0;x<size;x++){
+      if (next.m[y][x]){
+        nctx.fillStyle = next.color; nctx.shadowColor = next.color; nctx.shadowBlur = 5;
+        nctx.fillRect(offX+x*cs+1, offY+y*cs+1, cs-2, cs-2);
+        nctx.shadowBlur = 0;
+      }
+    }
+  }
+
+  let lastTs = null;
+  function loop(ts){
+    if (lastTs===null) lastTs = ts;
+    const dt = Math.min(50, ts - lastTs); lastTs = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  draw();
+  requestAnimationFrame(loop);
 
   renderStaticTexts();
 })();
