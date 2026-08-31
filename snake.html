@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>FLAPPY — Ekran</title>
+<title>SNAKE — Ekran</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
-  :root{ --phosphor:#35FF6E; --phosphor-dim:#1B7A38; --bg:#050807; --bg2:#0A120D; --amber:#FFB000; --line:rgba(53,255,110,0.18); --scan-op:0.18; --vig-op:0.65; }
+  :root{
+    --phosphor:#35FF6E; --phosphor-dim:#1B7A38; --bg:#050807; --bg2:#0A120D; --amber:#FFB000;
+    --line:rgba(53,255,110,0.18); --scan-op:0.18; --vig-op:0.65;
+  }
   body.light{ --phosphor:#12833F; --phosphor-dim:#6E9E82; --bg:#EEF3EE; --bg2:#FFFFFF; --amber:#B36A00; --line:rgba(18,131,63,0.18); --scan-op:0.03; --vig-op:0.06; }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
@@ -18,20 +21,23 @@
   .logo span{ color:var(--amber); text-shadow:0 0 6px var(--amber), 0 0 18px rgba(255,176,0,0.5); }
   .subtitle{ font-size:12px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:6px; }
   .toolbar{ display:flex; gap:8px; }
-  .icon-btn{ font-family:'Space Mono', monospace; font-size:11px; background:transparent; color:var(--phosphor); border:1px solid var(--phosphor-dim); padding:8px 10px; border-radius:4px; cursor:pointer; min-width:38px; }
+  .icon-btn{ font-family:'Space Mono', monospace; font-size:11px; letter-spacing:0.5px; background:transparent; color:var(--phosphor); border:1px solid var(--phosphor-dim); padding:8px 10px; border-radius:4px; cursor:pointer; min-width:38px; }
   .icon-btn:hover{ background:rgba(53,255,110,0.08); border-color:var(--phosphor); }
-  main{ width:100%; max-width:920px; padding:16px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
-  .scoreboard{ font-family:'Press Start 2P', monospace; font-size:clamp(28px, 6vw, 46px); text-shadow:0 0 10px currentColor; color:var(--phosphor); }
-  #bestRow{ font-size:11px; color:var(--phosphor-dim); letter-spacing:1px; margin-top:2px; text-align:center; }
-  #gameWrap{ position:relative; width:100%; max-width:520px; aspect-ratio:3/4; border:2px solid var(--phosphor-dim); border-radius:6px; box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06); background:linear-gradient(var(--bg2), var(--bg2)) padding-box; overflow:hidden; }
+  main{ width:100%; max-width:920px; padding:8px 20px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .scoreboard{ font-family:'Press Start 2P', monospace; font-size:clamp(28px, 6vw, 46px); display:flex; align-items:center; gap:28px; text-shadow:0 0 10px currentColor; }
+  .scoreboard .you{ color:var(--phosphor); }
+  .scoreboard .cpu{ color:var(--amber); }
+  .scoreboard .sep{ color:var(--phosphor-dim); font-size:0.6em; }
+  .score-labels{ display:flex; justify-content:space-between; width:100%; max-width:520px; font-size:10px; color:var(--phosphor-dim); letter-spacing:2px; margin-top:4px; }
+  #gameWrap{ position:relative; width:100%; max-width:720px; aspect-ratio:4/3; border:2px solid var(--phosphor-dim); border-radius:6px; box-shadow:0 0 30px rgba(53,255,110,0.08) inset, 0 0 40px rgba(53,255,110,0.06); background:linear-gradient(var(--bg2), var(--bg2)) padding-box; overflow:hidden; }
   #fullscreenArea:fullscreen, #fullscreenArea:-webkit-full-screen{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; background:var(--bg); width:100vw; height:100vh; padding:20px; }
-  #fullscreenArea:fullscreen #gameWrap, #fullscreenArea:-webkit-full-screen #gameWrap{ max-width:none; width:min(94vw, calc(88vh * 3 / 4)); height:min(88vh, calc(94vw * 4 / 3)); }
+  #fullscreenArea:fullscreen #gameWrap, #fullscreenArea:-webkit-full-screen #gameWrap{ max-width:none; width:min(94vw, calc(88vh * 4 / 3)); height:min(88vh, calc(94vw * 3 / 4)); }
   canvas{ display:block; width:100%; height:100%; }
   #overlayMsg{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; background:rgba(5,8,7,0.92); font-family:'Press Start 2P', monospace; font-size:14px; letter-spacing:1px; padding:24px; z-index:5; }
   body.light #overlayMsg{ background:rgba(238,243,238,0.95); }
-  #overlayMsg .small{ font-family:'Space Mono', monospace; font-size:12px; color:var(--phosphor-dim); letter-spacing:0.5px; max-width:380px; line-height:1.7; }
+  #overlayMsg .small{ font-family:'Space Mono', monospace; font-size:12px; color:var(--phosphor-dim); letter-spacing:0.5px; max-width:400px; line-height:1.7; }
   #overlayMsg.hidden{ display:none; }
-  #overlayMsg.countdown-mode #qrBox, #overlayMsg.countdown-mode .status-row, #overlayMsg.countdown-mode #playerList{ display:none; }
+  #overlayMsg.countdown-mode #qrBox, #overlayMsg.countdown-mode .status-row{ display:none; }
   #overlayTitle.countdown-number{ font-size:64px; }
   #qrBox{ background:#EAFFF0; padding:14px; border-radius:8px; box-shadow:0 0 24px rgba(53,255,110,0.35); }
   .status-row{ display:flex; align-items:center; gap:8px; font-size:11px; letter-spacing:0.5px; }
@@ -39,15 +45,17 @@
   .dot.waiting{ background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite; }
   .dot.connected{ background:var(--phosphor); box-shadow:0 0 8px var(--phosphor); }
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
-  #playerList{ font-size:10px; color:var(--phosphor-dim); max-width:380px; line-height:1.8; }
-  .controls-panel{ width:100%; max-width:520px; display:grid; grid-template-columns:1fr; gap:14px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); }
+  .controls-panel{ width:100%; max-width:720px; display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); }
+  @media (max-width:520px){ .controls-panel{ grid-template-columns:1fr; } }
+  .ctrl-group{ display:flex; flex-direction:column; gap:6px; }
+  .ctrl-group.full{ grid-column:1/-1; }
   .ctrl-group label{ font-size:10px; letter-spacing:0.5px; color:var(--phosphor-dim); }
   .seg-row{ display:flex; gap:6px; }
   .seg-btn{ flex:1; font-size:9px; padding:8px 4px; border:1px solid var(--phosphor-dim); color:var(--phosphor-dim); background:transparent; border-radius:4px; }
   .seg-btn.active{ color:var(--phosphor); border-color:var(--phosphor); box-shadow:0 0 8px rgba(53,255,110,0.25); }
-  footer{ width:100%; max-width:520px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
+  footer{ width:100%; max-width:720px; padding:0 20px 30px; font-size:10.5px; line-height:1.7; color:var(--phosphor-dim); text-align:center; }
   footer b{ color:var(--phosphor); }
-  .ranking-panel{ width:100%; max-width:520px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); margin-bottom:4px; }
+  .ranking-panel{ width:100%; max-width:720px; padding:16px; border:1px solid var(--line); border-radius:8px; background:rgba(53,255,110,0.02); margin-bottom:4px; }
   .ranking-panel h3{ font-size:11px; letter-spacing:1px; color:var(--phosphor-dim); margin-bottom:10px; font-weight:normal; display:flex; justify-content:space-between; align-items:center; }
   .ranking-panel h3 a{ color:var(--phosphor); text-decoration:none; font-size:10px; border-bottom:1px dotted var(--phosphor); }
   .rank-row{ display:flex; justify-content:space-between; font-size:12px; padding:5px 8px; border-radius:4px; background:rgba(53,255,110,0.03); margin-bottom:4px; }
@@ -59,7 +67,7 @@
 <body>
 <header>
   <div>
-    <div class="logo"><span>FLAPPY</span></div>
+    <div class="logo"><span>SNAKE</span></div>
     <div class="subtitle" id="txtSubtitle">zeskanuj kod QR telefonem, żeby zostać kontrolerem</div>
   </div>
   <div class="toolbar">
@@ -71,8 +79,12 @@
 <main>
   <div id="fullscreenArea">
   <div>
-    <div class="scoreboard" id="scoreBoard">0</div>
-    <div id="bestRow">NAJLEPSZY: 0</div>
+    <div class="scoreboard">
+      <span class="you" id="scoreYou">0</span>
+      <span class="sep">:</span>
+      <span class="cpu" id="scoreCpu">0</span>
+    </div>
+    <div class="score-labels"><span id="lblLeft">GRACZ</span><span id="lblRight" style="visibility:hidden">GRACZ 2</span></div>
   </div>
   <div id="gameWrap">
     <canvas id="game"></canvas>
@@ -80,26 +92,25 @@
       <div id="overlayTitle">ZESKANUJ, ŻEBY DOŁĄCZYĆ</div>
       <div id="qrBox"><div id="qrCanvas"></div></div>
       <div class="status-row"><div class="dot waiting" id="dot"></div><span id="statusLabel">Czekam na telefon…</span></div>
-      <div id="playerList"></div>
       <div id="countdownSub" class="small" style="display:none;"></div>
     </div>
   </div>
   </div>
   <div class="controls-panel">
-    <div class="ctrl-group">
+    <div class="ctrl-group full">
       <label id="lblMode">Tryb gry</label>
       <div class="seg-row">
         <button class="seg-btn active" id="modeBtn1p">1 GRACZ</button>
-        <button class="seg-btn" id="modeBtnMulti">WIELU GRACZY</button>
+        <button class="seg-btn" id="modeBtn2p">2 GRACZY</button>
       </div>
     </div>
   </div>
   <div class="ranking-panel">
-    <h3><span id="lblRankingPanel">TOP 5 — FLAPPY</span><a id="linkFullRanking" href="https://top-art-agency.github.io/ranking-gier/" target="_blank">Pełny ranking →</a></h3>
+    <h3><span id="lblRankingPanel">TOP 5 — SNAKE</span><a id="linkFullRanking" href="https://top-art-agency.github.io/ranking-gier/" target="_blank">Pełny ranking →</a></h3>
     <div id="rankList"><div class="rank-row empty">Ładowanie…</div></div>
   </div>
 
-  <footer id="footerText">Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.</footer>
+  <footer id="footerText">Wąż zdobywa punkt za każde zjedzone jabłko. Uderzenie w ścianę, siebie (albo przeciwnika w trybie 2 graczy) kończy rundę.</footer>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -111,332 +122,260 @@
   const $ = id => document.getElementById(id);
   const el = {
     overlay:$('overlayMsg'), overlayTitle:$('overlayTitle'), dot:$('dot'), statusLabel:$('statusLabel'),
-    qrCanvas:$('qrCanvas'), scoreBoard:$('scoreBoard'), bestRow:$('bestRow'), canvas:$('game'),
-    btnLang:$('btnLang'), btnTheme:$('btnTheme'), btnFullscreen:$('btnFullscreen'), txtSubtitle:$('txtSubtitle'),
-    lblMode:$('lblMode'), modeBtn1p:$('modeBtn1p'), modeBtnMulti:$('modeBtnMulti'), footerText:$('footerText'),
-    playerList:$('playerList'), countdownSub:$('countdownSub')
+    qrCanvas:$('qrCanvas'), scoreYou:$('scoreYou'), scoreCpu:$('scoreCpu'), canvas:$('game'),
+    lblLeft:$('lblLeft'), lblRight:$('lblRight'), btnLang:$('btnLang'), btnTheme:$('btnTheme'),
+    btnFullscreen:$('btnFullscreen'), txtSubtitle:$('txtSubtitle'), lblMode:$('lblMode'),
+    modeBtn1p:$('modeBtn1p'), modeBtn2p:$('modeBtn2p'), footerText:$('footerText'), countdownSub:$('countdownSub')
   };
 
   const STR = { pl:{
       subtitle:'zeskanuj kod QR telefonem, żeby zostać kontrolerem', overlayQrTitle:'ZESKANUJ, ŻEBY DOŁĄCZYĆ',
-      waitingOne:'Czekam na telefon…', waitingName:'Podaj swój nick na telefonie, żeby zacząć', connectedOne:'Telefon połączony', disconnected:'Telefon rozłączony — odśwież stronę',
-      lobbyJoin:'Dołącz teraz — runda zaczyna się za chwilę', gameOver:'KONIEC RUNDY', winner:'WYGRYWA',
-      waitingNameMulti:'Czekam, aż przynajmniej jeden gracz poda nick…',
-      best:'NAJLEPSZY', modeLabel:'Tryb gry', mode1p:'1 GRACZ', modeMulti:'WIELU GRACZY', startingIn:'Zaczynamy za...',
-      footer1p:'Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.',
-      footerMulti:'Każdy telefon steruje swoim ptakiem na tej samej planszy. Dołącz skanując kod QR — runda startuje po krótkim czasie na dołączanie. Kto przetrwa najdłużej, wygrywa.'
+      waitingOne:'Czekam na telefon…', waitingName:'Podaj swój nick na telefonie, żeby zacząć', waitingP1:'Czekam na Gracza 1…', waitingP2:'Gracz 1 połączony · czekam na Gracza 2…',
+      connectedOne:'Telefon połączony', connectedBoth:'Obaj gracze połączeni', disconnected:'Telefon rozłączony — odśwież stronę',
+      won:'WYGRANA!', lost:'KONIEC GRY', p1win:'WYGRAŁ GRACZ 1', p2win:'WYGRAŁ GRACZ 2', draw:'REMIS!',
+      wonSub:'Nowy wynik.', lostSub:'Spróbuj ponownie.', p1winSub:'Gracz 1 przetrwał dłużej.', p2winSub:'Gracz 2 przetrwał dłużej.', drawSub:'Obaj zginęli jednocześnie.',
+      labelLeft1p:'GRACZ', labelLeft2p:'GRACZ 1', labelRight2p:'GRACZ 2',
+      modeLabel:'Tryb gry', mode1p:'1 GRACZ', mode2p:'2 GRACZY', winsSuffix:'WYGRYWA!', startingIn:'Zaczynamy za...',
+      footer1p:'Wąż zdobywa punkt za każde zjedzone jabłko. Uderzenie w ścianę albo siebie kończy rundę.',
+      footer2p:'Dwa węże na jednej planszy. Uderzenie w ścianę, siebie albo przeciwnika kończy rundę dla tego gracza.'
     }, en:{
       subtitle:'scan the QR code with your phone to become a controller', overlayQrTitle:'SCAN TO JOIN',
-      waitingOne:'Waiting for phone…', waitingName:'Enter your nickname on your phone to start', connectedOne:'Phone connected', disconnected:'Phone disconnected — refresh the page',
-      lobbyJoin:'Join now — round starts soon', gameOver:'ROUND OVER', winner:'WINS',
-      waitingNameMulti:'Waiting for at least one player to enter a nickname…',
-      best:'BEST', modeLabel:'Game mode', mode1p:'1 PLAYER', modeMulti:'MULTIPLAYER', startingIn:'Starting in...',
-      footer1p:'Tap to make the bird fly up. Avoid the pipes. Score a point for every pipe pair passed.',
-      footerMulti:'Each phone controls its own bird on the same board. Join by scanning the QR — the round starts after a short join window. Whoever survives longest wins.'
+      waitingOne:'Waiting for phone…', waitingName:'Enter your nickname on your phone to start', waitingP1:'Waiting for Player 1…', waitingP2:'Player 1 connected · waiting for Player 2…',
+      connectedOne:'Phone connected', connectedBoth:'Both players connected', disconnected:'Phone disconnected — refresh the page',
+      won:'NEW SCORE!', lost:'GAME OVER', p1win:'PLAYER 1 WINS', p2win:'PLAYER 2 WINS', draw:'DRAW!',
+      wonSub:'New score.', lostSub:'Try again.', p1winSub:'Player 1 survived longer.', p2winSub:'Player 2 survived longer.', drawSub:'Both died at the same time.',
+      labelLeft1p:'PLAYER', labelLeft2p:'PLAYER 1', labelRight2p:'PLAYER 2',
+      modeLabel:'Game mode', mode1p:'1 PLAYER', mode2p:'2 PLAYERS', winsSuffix:'WINS!', startingIn:'Starting in...',
+      footer1p:'The snake scores a point for every apple eaten. Hitting the wall or itself ends the round.',
+      footer2p:'Two snakes, one board. Hitting the wall, yourself, or the other snake ends the round for that player.'
     } };
-  let lang='pl'; function t(k){ return STR[lang][k]; }
+  let lang = 'pl';
+  function t(k){ return STR[lang][k]; }
 
-  let mode='1p';
-  let overlayState='qr'; // qr | lobby | countdown | result
-  let countdownTimer=null, lobbyTimer=null, resultTimer=null, countdownN=3;
-  let bestScore=0;
+  let statusState = 'waitingOne';
+  let overlayState = 'qr';
+  let countdownTimer=null, autoRestartTimer=null, countdownN=3;
+  const slots = {1:null, 2:null};
+  const names = {1:null, 2:null};
+  const colors = {1:null, 2:null};
 
-  // 1p: single slot
-  let soloConn=null, soloName=null, soloColor=null;
-  // multi: unlimited
-  const players = new Map(); // connId -> {conn, name, bird}
+  function cancelCountdown(){ if(countdownTimer){clearInterval(countdownTimer); countdownTimer=null;} }
+  function cancelAutoRestart(){ if(autoRestartTimer){clearTimeout(autoRestartTimer); autoRestartTimer=null;} }
+  function isReady(){ const p1=!!slots[1], p2=!!slots[2]; return mode==='1p' ? p1 : (p1&&p2); }
 
-  function cancelTimers(){
-    if(countdownTimer){clearInterval(countdownTimer); countdownTimer=null;}
-    if(lobbyTimer){clearInterval(lobbyTimer); lobbyTimer=null;}
-    if(resultTimer){clearTimeout(resultTimer); resultTimer=null;}
-  }
-
+  function renderStatus(){ el.statusLabel.textContent = t(statusState); }
   function renderOverlay(){
-    el.overlay.classList.toggle('countdown-mode', overlayState==='countdown');
-    el.overlayTitle.classList.toggle('countdown-number', overlayState==='countdown');
-    el.countdownSub.style.display = overlayState==='countdown' ? '' : 'none';
-    el.playerList.style.display = (overlayState==='lobby') ? '' : 'none';
-    if (overlayState==='qr'){ el.overlayTitle.textContent = t('overlayQrTitle'); el.statusLabel.textContent = t('waitingOne'); el.dot.className='dot waiting'; }
-    else if (overlayState==='lobby'){
-      el.overlayTitle.textContent = t('lobbyJoin');
-      el.dot.className='dot connected';
-      el.statusLabel.textContent = players.size + ' 🐤';
-      el.playerList.textContent = Array.from(players.values()).map(p=>p.name||'?').join(' · ');
+    if (overlayState==='countdown'){
+      el.overlayTitle.classList.add('countdown-number'); el.overlay.classList.add('countdown-mode');
+      el.overlayTitle.textContent = String(countdownN);
+      el.countdownSub.style.display=''; el.countdownSub.textContent = t('startingIn');
+      return;
     }
-    else if (overlayState==='countdown'){ el.overlayTitle.textContent = String(countdownN); el.countdownSub.textContent = t('startingIn'); }
-    else if (overlayState==='result'){
+    el.overlayTitle.classList.remove('countdown-number'); el.overlay.classList.remove('countdown-mode');
+    el.countdownSub.style.display='none';
+    if (overlayState==='qr'){ el.overlayTitle.textContent = t('overlayQrTitle'); }
+    else {
+      const titleKey = {won:'won',lost:'lost',p1win:'p1win',p2win:'p2win',draw:'draw'}[overlayState];
+      const subKey = {won:'wonSub',lost:'lostSub',p1win:'p1winSub',p2win:'p2winSub',draw:'drawSub'}[overlayState];
+      el.overlayTitle.textContent = t(titleKey);
       const sub = document.getElementById('gameoverSub');
-      if (sub) sub.textContent = '';
+      if (sub) sub.textContent = t(subKey);
     }
+  }
+  function renderModeLabels(){
+    if (mode==='1p'){ el.lblLeft.textContent = names[1]?names[1].toUpperCase():t('labelLeft1p'); el.lblRight.style.visibility='hidden'; }
+    else { el.lblLeft.textContent = names[1]?names[1].toUpperCase():t('labelLeft2p'); el.lblRight.textContent = names[2]?names[2].toUpperCase():t('labelRight2p'); el.lblRight.style.visibility='visible'; }
   }
   function renderStaticTexts(){
-    el.txtSubtitle.textContent = t('subtitle');
-    el.lblMode.textContent = t('modeLabel');
-    el.modeBtn1p.textContent = t('mode1p');
-    el.modeBtnMulti.textContent = t('modeMulti');
-    el.footerText.textContent = mode==='multi' ? t('footerMulti') : t('footer1p');
-    el.bestRow.textContent = t('best') + ': ' + bestScore;
-    renderOverlay();
+    el.txtSubtitle.textContent = t('subtitle'); el.lblMode.textContent = t('modeLabel');
+    el.modeBtn1p.textContent = t('mode1p'); el.modeBtn2p.textContent = t('mode2p');
+    el.footerText.textContent = mode==='2p' ? t('footer2p') : t('footer1p');
+    renderModeLabels(); renderStatus(); renderOverlay();
   }
-  el.btnLang.addEventListener('click', () => { lang=lang==='pl'?'en':'pl'; el.btnLang.textContent=lang==='pl'?'EN':'PL'; renderStaticTexts(); });
+  el.btnLang.addEventListener('click', () => { lang = lang==='pl'?'en':'pl'; el.btnLang.textContent = lang==='pl'?'EN':'PL'; renderStaticTexts(); });
   el.btnTheme.addEventListener('click', () => { document.body.classList.toggle('light'); el.btnTheme.textContent = document.body.classList.contains('light')?'☀️':'🌙'; });
   el.btnFullscreen.addEventListener('click', () => { if(!document.fullscreenElement){ (document.getElementById('fullscreenArea')||document.documentElement).requestFullscreen().catch(()=>{});} else { document.exitFullscreen().catch(()=>{});} });
 
+  let mode = '1p';
   function setMode(m){
-    mode=m; el.modeBtn1p.classList.toggle('active', m==='1p'); el.modeBtnMulti.classList.toggle('active', m==='multi');
-    el.footerText.textContent = m==='multi' ? t('footerMulti') : t('footer1p');
-    cancelTimers(); overlayState='qr'; renderOverlay();
+    mode=m; el.modeBtn1p.classList.toggle('active', m==='1p'); el.modeBtn2p.classList.toggle('active', m==='2p');
+    renderModeLabels(); el.footerText.textContent = m==='2p'?t('footer2p'):t('footer1p');
+    updateReadyState();
   }
   el.modeBtn1p.addEventListener('click', ()=>setMode('1p'));
-  el.modeBtnMulti.addEventListener('click', ()=>setMode('multi'));
+  el.modeBtn2p.addEventListener('click', ()=>setMode('2p'));
 
-  // ---- WebRTC ----
+  function beginCountdown(){
+    cancelCountdown(); cancelAutoRestart();
+    overlayState='countdown'; countdownN=3; el.overlay.classList.remove('hidden'); renderOverlay();
+    countdownTimer = setInterval(() => {
+      countdownN--;
+      if (countdownN<=0){ cancelCountdown(); startGame(); } else { renderOverlay(); }
+    }, 1000);
+  }
+  function backToWaiting(){ cancelCountdown(); cancelAutoRestart(); overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden'); }
+
+  function updateReadyState(){
+    const p1=!!slots[1], p2=!!slots[2];
+    const p1n = p1 && !!names[1], p2n = p2 && !!names[2];
+    let ready;
+    if (mode==='1p'){ ready=p1n; statusState = !p1 ? 'waitingOne' : (p1n?'connectedOne':'waitingName'); }
+    else {
+      ready = p1n && p2n;
+      if (!p1) statusState='waitingP1';
+      else if (!p1n) statusState='waitingName';
+      else if (!p2) statusState='waitingP2';
+      else if (!p2n) statusState='waitingName';
+      else statusState='connectedBoth';
+    }
+    el.dot.className = 'dot '+(ready?'connected':'waiting');
+    renderStatus();
+    if (ready && overlayState==='qr'){ beginCountdown(); }
+    else if (!ready && (overlayState==='qr'||overlayState==='countdown')){ cancelCountdown(); overlayState='qr'; renderOverlay(); }
+  }
+
   const peer = new Peer();
   peer.on('open', (id) => {
     const dir = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')+1);
-    const url = new URL(dir + 'flappy-controller.html', window.location.origin);
+    const url = new URL(dir + 'snake-controller.html', window.location.origin);
     url.searchParams.set('code', id);
     new QRCode(el.qrCanvas, { text:url.toString(), width:200, height:200, colorDark:'#0A120D', colorLight:'#EAFFF0' });
   });
   peer.on('error', (err) => { el.statusLabel.textContent = 'Error: '+err.type; });
-
   peer.on('connection', (conn) => {
     conn.on('open', () => {
-      if (mode==='1p'){
-        if (soloConn){ conn.send({type:'full'}); setTimeout(()=>conn.close(),300); return; }
-        soloConn = conn;
-        conn.on('data', (data) => {
-          if (!data) return;
-          if (data.type==='flap' && running) flap();
-          if (data.name !== undefined) soloName = data.name ? data.name.trim().slice(0,16) : null;
-          if (data.color !== undefined) soloColor = data.color || null;
-          renderSoloReady();
-        });
-        conn.on('close', () => { soloConn=null; soloName=null; running=false; overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden'); });
-        el.overlay.classList.remove('hidden');
-        renderSoloReady();
-      } else {
-        const id = conn.peer;
-        players.set(id, { conn, name:null, color:null, bird:null });
-        conn.on('data', (data) => {
-          if (!data) return;
-          if (data.name !== undefined){ const p=players.get(id); if(p) p.name = data.name ? data.name.trim().slice(0,16) : null; if(overlayState==='lobby') renderOverlay(); }
-          if (data.color !== undefined){ const p=players.get(id); if(p) p.color = data.color || null; }
-          if (data.type==='flap'){ const p=players.get(id); if (p && p.bird && p.bird.alive) flapBird(p.bird); }
-        });
-        conn.on('close', () => {
-          players.delete(id);
-          if (overlayState==='lobby' && players.size===0){ cancelTimers(); overlayState='qr'; renderOverlay(); }
-        });
-        if (overlayState==='qr'){ beginLobbyMulti(); } else { renderOverlay(); }
+      let slot = null;
+      if (mode==='1p'){ slot=1; } else { if(!slots[1]) slot=1; else if(!slots[2]) slot=2; }
+      if (slot===null){ conn.send({type:'full'}); setTimeout(()=>conn.close(),300); return; }
+      slots[slot]=conn; conn.send({type:'assign', slot}); updateReadyState();
+      if (!window._snakeHeartbeat){
+        window._snakeHeartbeat = setInterval(() => { Object.keys(slots).forEach(s=>{ if(slots[s]&&slots[s].open) slots[s].send({type:'assign', slot:parseInt(s,10)}); }); }, 1000);
       }
+      conn.on('data', (data) => {
+        if (!data) return;
+        if (data.type==='dir'){ setDir(slot, data.dir); }
+        if (data.name !== undefined){ const c = data.name?data.name.trim().slice(0,16):null; if(names[slot]!==c){names[slot]=c; renderModeLabels(); updateReadyState();} }
+        if (data.color !== undefined && colors[slot] !== data.color){ colors[slot] = data.color; }
+      });
+      conn.on('close', () => {
+        slots[slot]=null; names[slot]=null; colors[slot]=null; statusState='disconnected'; el.dot.className='dot waiting';
+        renderStatus(); renderModeLabels(); running=false; backToWaiting();
+      });
     });
   });
 
-  function renderSoloReady(){
-    const ready = !!soloConn && !!soloName;
-    el.dot.className = 'dot ' + (ready ? 'connected' : 'waiting');
-    el.statusLabel.textContent = !soloConn ? t('waitingOne') : (soloName ? t('connectedOne') : t('waitingName'));
-    if (ready && overlayState==='qr'){ beginLobbySolo(); }
-  }
-  function beginLobbySolo(){
-    cancelTimers(); overlayState='countdown'; countdownN=3; el.overlay.classList.remove('hidden'); renderOverlay();
-    countdownTimer = setInterval(() => {
-      countdownN--;
-      if (countdownN<=0){ cancelTimers(); startSolo(); } else { renderOverlay(); }
-    }, 1000);
-  }
-  function beginLobbyMulti(){
-    cancelTimers(); overlayState='lobby'; el.overlay.classList.remove('hidden'); renderOverlay();
-    let secs=8;
-    lobbyTimer = setInterval(() => {
-      secs--;
-      el.overlayTitle.textContent = t('lobbyJoin') + ' (' + secs + ')';
-      if (secs<=0){
-        clearInterval(lobbyTimer); lobbyTimer=null;
-        const anyNamed = Array.from(players.values()).some(p => !!p.name);
-        if (!anyNamed){
-          secs = 8;
-          el.overlayTitle.textContent = t('waitingNameMulti');
-          lobbyTimer = setInterval(() => {
-            const nowNamed = Array.from(players.values()).some(p => !!p.name);
-            if (nowNamed){
-              clearInterval(lobbyTimer); lobbyTimer=null;
-              overlayState='countdown'; countdownN=3; renderOverlay();
-              countdownTimer = setInterval(() => {
-                countdownN--;
-                if (countdownN<=0){ cancelTimers(); startMulti(); } else { renderOverlay(); }
-              }, 1000);
-            }
-          }, 500);
-          return;
-        }
-        overlayState='countdown'; countdownN=3; renderOverlay();
-        countdownTimer = setInterval(() => {
-          countdownN--;
-          if (countdownN<=0){ cancelTimers(); startMulti(); } else { renderOverlay(); }
-        }, 1000);
-      }
-    }, 1000);
-  }
-
-  // ---- Flappy physics ----
+  // ---- Snake game ----
   const ctx = el.canvas.getContext('2d');
-  const W=390, H=520;
+  const W=640, H=480, CELL=32, COLS=W/CELL, ROWS=H/CELL;
   el.canvas.width=W; el.canvas.height=H;
-  const GRAV=0.35, FLAP_V=-6.5, PIPE_W=52, PIPE_GAP=155, PIPE_SPEED=2.6, PIPE_SPACING=210;
-  let running=false, pipes=[], distSinceSpawn=0;
-  let solo=null; // {y,vy,alive,score,x}
+  let snakes, food, running=false, tickAcc=0, tickMs=90;
 
-  function newBird(){ return { x:80, y:H/2, vy:0, alive:true, score:0 }; }
-  function flap(){ if (solo && solo.alive) solo.vy = FLAP_V; }
-  function flapBird(b){ b.vy = FLAP_V; }
-
-  function spawnPipe(){
-    const margin=50;
-    const gapY = margin + Math.random()*(H-2*margin-PIPE_GAP);
-    pipes.push({ x:W+20, gapY, passed:false });
+  function newSnake(sx, sy, dx){
+    return { cells:[{x:sx,y:sy},{x:sx-dx,y:sy},{x:sx-2*dx,y:sy}], dir:{x:dx,y:0}, nextDir:{x:dx,y:0}, alive:true, score:0 };
   }
-  function startSolo(){
+  function spawnFood(){
+    let p;
+    do { p = {x:Math.floor(Math.random()*COLS), y:Math.floor(Math.random()*ROWS)}; }
+    while (snakes.some(s => s.cells.some(c => c.x===p.x && c.y===p.y)));
+    food = p;
+  }
+  function setDir(slot, dir){
+    const s = mode==='1p' ? snakes[0] : snakes[slot-1];
+    if (!s || !s.alive) return;
+    const map = { up:{x:0,y:-1}, down:{x:0,y:1}, left:{x:-1,y:0}, right:{x:1,y:0} };
+    const nd = map[dir]; if (!nd) return;
+    if (nd.x === -s.dir.x && nd.y === -s.dir.y) return; // no 180 reversal
+    s.nextDir = nd;
+  }
+  function startGame(){
     el.overlay.classList.add('hidden');
-    solo = newBird(); pipes=[]; distSinceSpawn=0; spawnPipe(); running=true;
-    el.scoreBoard.textContent='0';
+    if (mode==='1p'){ snakes = [ newSnake(4,7,1) ]; }
+    else { snakes = [ newSnake(4,7,1), newSnake(COLS-5,7,-1) ]; }
+    el.scoreYou.textContent='0'; el.scoreCpu.textContent='0';
+    spawnFood(); tickAcc=0; tickMs=90; running=true;
   }
-  function startMulti(){
-    el.overlay.classList.add('hidden');
-    pipes=[]; distSinceSpawn=0; spawnPipe(); running=true;
-    players.forEach(p => { p.bird = p.name ? newBird() : null; });
-    el.scoreBoard.textContent='0';
-  }
-
-  function birdHitsPipe(b, p){
-    if (b.x+12 < p.x || b.x-12 > p.x+PIPE_W) return false;
-    if (b.y-12 < p.gapY || b.y+12 > p.gapY+PIPE_GAP) return true;
-    return false;
-  }
-
-  function updatePhysics(){
-    if (!running) return;
-    distSinceSpawn += PIPE_SPEED;
-    if (distSinceSpawn >= PIPE_SPACING){ distSinceSpawn=0; spawnPipe(); }
-    pipes.forEach(p => p.x -= PIPE_SPEED);
-    while (pipes.length && pipes[0].x < -PIPE_W-20) pipes.shift();
-
-    if (mode==='1p'){
-      if (solo && solo.alive){
-        solo.vy += GRAV; solo.y += solo.vy;
-        if (solo.y < 10 || solo.y > H-10) solo.alive=false;
-        pipes.forEach(p => {
-          if (!p.passed && p.x+PIPE_W < solo.x){ p.passed=true; solo.score++; }
-          if (birdHitsPipe(solo, p)) solo.alive=false;
-        });
-        el.scoreBoard.textContent = solo.score;
-        if (!solo.alive) endSolo();
-      }
-    } else {
-      let anyAlive=false;
-      players.forEach(p => {
-        const b=p.bird; if (!b || !b.alive) return;
-        anyAlive=true;
-        b.vy += GRAV; b.y += b.vy;
-        if (b.y<10 || b.y>H-10) b.alive=false;
-        pipes.forEach(pipe => {
-          if (!pipe.passed_multi_ && false) {}
-          if (birdHitsPipe(b, pipe)) b.alive=false;
-        });
-      });
-      pipes.forEach(pipe => {
-        if (!pipe.passed){
-          let anyPassed=false;
-          players.forEach(p => { if (p.bird && p.bird.alive && pipe.x+PIPE_W < p.bird.x) anyPassed=true; });
-          if (anyPassed){ pipe.passed=true; players.forEach(p => { if (p.bird && p.bird.alive) p.bird.score++; }); }
-        }
-      });
-      const maxScore = Math.max(0, ...Array.from(players.values()).map(p=>p.bird?p.bird.score:0));
-      el.scoreBoard.textContent = maxScore;
-      if (!anyAlive && players.size>0) endMulti();
-    }
-  }
-
-  function endSolo(){
+  function endRound(){
     running=false;
-    if (solo.score > bestScore){ bestScore = solo.score; el.bestRow.textContent = t('best')+': '+bestScore; }
-    overlayState='result';
-    el.overlayTitle.textContent = t('gameOver');
+    if (mode==='1p'){ overlayState='lost'; }
+    else {
+      const a=snakes[0], b=snakes[1];
+      if (a.alive && !b.alive) overlayState='p1win';
+      else if (b.alive && !a.alive) overlayState='p2win';
+      else overlayState='draw';
+    }
     if (!document.getElementById('gameoverSub')){
       const sub=document.createElement('div'); sub.id='gameoverSub'; sub.className='small';
       el.overlay.insertBefore(sub, el.countdownSub);
     }
-    document.getElementById('gameoverSub').textContent = (soloName?soloName.toUpperCase()+' · ':'') + 'SCORE: ' + solo.score;
-    el.overlay.classList.remove('hidden');
-    if (window.ArcadeScores && window.ArcadeScores.ready) window.ArcadeScores.submit('flappy', soloName, solo.score, soloColor);
-    resultTimer = setTimeout(() => { if (soloConn){ beginLobbySolo(); } else { overlayState='qr'; renderOverlay(); } }, 4000);
-  }
-  function endMulti(){
-    running=false;
-    overlayState='result';
-    const arr = Array.from(players.values()).map(p => ({ name: p.name || '?', score: p.bird?p.bird.score:0 }));
-    arr.sort((a,b)=>b.score-a.score);
-    const top = arr.length ? arr[0].score : 0;
-    const winners = arr.filter(a=>a.score===top).map(a=>a.name.toUpperCase());
-    el.overlayTitle.textContent = winners.join(' & ') + ' ' + t('winner');
-    if (!document.getElementById('gameoverSub')){
-      const sub=document.createElement('div'); sub.id='gameoverSub'; sub.className='small';
-      el.overlay.insertBefore(sub, el.countdownSub);
-    }
-    document.getElementById('gameoverSub').textContent = arr.map(a=>a.name+': '+a.score).join(' · ');
-    el.overlay.classList.remove('hidden');
-    if (window.ArcadeScores && window.ArcadeScores.ready){
-      players.forEach(p => { window.ArcadeScores.submit('flappy', p.name, p.bird?p.bird.score:0, p.color); });
-    }
-    resultTimer = setTimeout(() => { if (players.size>0){ beginLobbyMulti(); } else { overlayState='qr'; renderOverlay(); } }, 5000);
+    renderOverlay(); el.overlay.classList.remove('hidden');
+    submitScoresToRanking();
+    cancelAutoRestart();
+    autoRestartTimer = setTimeout(() => { if (isReady()){ beginCountdown(); } else { backToWaiting(); } }, 4000);
   }
 
   // ---- Ranking (Firebase, przez wspólny scores.js) ----
+  function submitScoresToRanking(){
+    if (!window.ArcadeScores || !window.ArcadeScores.ready) return;
+    if (slots[1] && snakes[0]) window.ArcadeScores.submit('snake', names[1], snakes[0].score, colors[1]);
+    if (mode==='2p' && slots[2] && snakes[1]) window.ArcadeScores.submit('snake', names[2], snakes[1].score, colors[2]);
+  }
   function initRankingPanel(){
     const list = document.getElementById('rankList');
     if (!window.ArcadeScores || !window.ArcadeScores.ready){
       list.innerHTML = '<div class="rank-row empty">Ranking niedostępny — uzupełnij scores.js</div>';
       return;
     }
-    window.ArcadeScores.listenTop('flappy', 5, (rows) => {
+    window.ArcadeScores.listenTop('snake', 5, (rows) => {
       if (!rows.length){ list.innerHTML = '<div class="rank-row empty">Brak wyników jeszcze</div>'; return; }
       list.innerHTML = rows.map(r => '<div class="rank-row"><span class="n">'+(r.name||'?')+'</span><span class="s">'+r.score+'</span></div>').join('');
     });
   }
   initRankingPanel();
-
+  function tick(){
+    let anyDied=false;
+    snakes.forEach(s => {
+      if (!s.alive) return;
+      s.dir = s.nextDir;
+      const head = { x:s.cells[0].x + s.dir.x, y:s.cells[0].y + s.dir.y };
+      let dead = head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS;
+      if (!dead) snakes.forEach(o => { if (o.cells.some((c,i)=> !(o===s && i===o.cells.length-1) && c.x===head.x && c.y===head.y)) dead=true; });
+      if (dead){ s.alive=false; anyDied=true; return; }
+      s.cells.unshift(head);
+      if (head.x===food.x && head.y===food.y){ s.score++; spawnFood(); tickMs = Math.max(45, tickMs - 2.5); } else { s.cells.pop(); }
+    });
+    el.scoreYou.textContent = snakes[0] ? snakes[0].score : 0;
+    if (mode==='2p') el.scoreCpu.textContent = snakes[1] ? snakes[1].score : 0;
+    if (anyDied) endRound();
+  }
   function draw(){
     ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg2').trim() || '#0A120D';
     ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle='rgba(53,255,110,0.35)'; ctx.lineWidth=3; ctx.shadowColor='#35FF6E'; ctx.shadowBlur=6;
-    pipes.forEach(p => {
-      ctx.strokeRect(p.x, 0, PIPE_W, p.gapY);
-      ctx.strokeRect(p.x, p.gapY+PIPE_GAP, PIPE_W, H-(p.gapY+PIPE_GAP));
-    });
-    ctx.shadowBlur=0;
-    if (mode==='1p' && solo){
-      const c = soloColor || '#35FF6E';
-      ctx.fillStyle = solo.alive ? c : 'rgba(120,120,120,0.6)';
-      ctx.shadowColor=c; ctx.shadowBlur = solo.alive?12:0;
-      ctx.beginPath(); ctx.arc(solo.x, solo.y, 12, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(53,255,110,0.06)'; ctx.lineWidth=1;
+    for (let x=0;x<=COLS;x++){ ctx.beginPath(); ctx.moveTo(x*CELL,0); ctx.lineTo(x*CELL,H); ctx.stroke(); }
+    for (let y=0;y<=ROWS;y++){ ctx.beginPath(); ctx.moveTo(0,y*CELL); ctx.lineTo(W,y*CELL); ctx.stroke(); }
+    if (food){
+      ctx.fillStyle='#FF5D5D'; ctx.shadowColor='#FF5D5D'; ctx.shadowBlur=12;
+      ctx.beginPath(); ctx.arc(food.x*CELL+CELL/2, food.y*CELL+CELL/2, CELL*0.32, 0, Math.PI*2); ctx.fill();
       ctx.shadowBlur=0;
-    } else if (mode==='multi'){
-      const fallbackColors=['#35FF6E','#FFB000','#3FE0FF','#FF5D5D','#D45DFF','#FFEC5D'];
-      let i=0;
-      players.forEach(p => {
-        const b=p.bird; if (!b) return;
-        const color = p.color || fallbackColors[i%fallbackColors.length]; i++;
-        ctx.fillStyle = b.alive ? color : 'rgba(120,120,120,0.4)';
-        ctx.shadowColor=color; ctx.shadowBlur = b.alive?10:0;
-        ctx.beginPath(); ctx.arc(b.x, b.y, 11, 0, Math.PI*2); ctx.fill();
-        ctx.shadowBlur=0;
-      });
     }
+    if (snakes) snakes.forEach((s, idx) => {
+      const color = colors[idx+1] || (idx===0 ? '#35FF6E' : '#FFB000');
+      ctx.fillStyle = s.alive ? color : 'rgba(120,120,120,0.5)';
+      ctx.shadowColor = color; ctx.shadowBlur = s.alive ? 8 : 0;
+      s.cells.forEach(c => { ctx.fillRect(c.x*CELL+2, c.y*CELL+2, CELL-4, CELL-4); });
+      ctx.shadowBlur=0;
+    });
   }
-  function loop(){ updatePhysics(); draw(); requestAnimationFrame(loop); }
-  draw(); requestAnimationFrame(loop);
+  function loop(ts){
+    if (running){
+      tickAcc += loop._dt || 16;
+      if (tickAcc >= tickMs){ tickAcc=0; tick(); }
+    }
+    draw();
+    requestAnimationFrame(loop);
+  }
+  draw();
+  requestAnimationFrame(loop);
 
   renderStaticTexts();
 })();
