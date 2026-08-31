@@ -268,7 +268,7 @@
   const ctx = el.canvas.getContext('2d');
   const W=640, H=480, CELL=32, COLS=W/CELL, ROWS=H/CELL;
   el.canvas.width=W; el.canvas.height=H;
-  let snakes, food, running=false, tickAcc=0, tickMs=90;
+  let snakes, food, running=false, tickAcc=0, tickMs=90, bestScore=0;
 
   function newSnake(sx, sy, dx){
     return { cells:[{x:sx,y:sy},{x:sx-dx,y:sy},{x:sx-2*dx,y:sy}], dir:{x:dx,y:0}, nextDir:{x:dx,y:0}, alive:true, score:0 };
@@ -295,14 +295,55 @@
     el.scoreYou.textContent='0'; el.scoreCpu.textContent='0';
     spawnFood(); tickAcc=0; tickMs=90; running=true;
   }
+  // ---- Konfetti ----
+  function fireConfetti(duration, count){
+    duration = duration || 2200; count = count || 140;
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;';
+    document.body.appendChild(canvas);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth*dpr; canvas.height = innerHeight*dpr;
+    const ctx = canvas.getContext('2d'); ctx.scale(dpr,dpr);
+    const COLORS = ['#35FF6E','#FFB000','#3FE0FF','#FF5D5D','#D45DFF','#FFEC5D'];
+    const parts = [];
+    for (let i=0;i<count;i++){
+      parts.push({
+        x: Math.random()*innerWidth, y: -20 - Math.random()*innerHeight*0.5,
+        vx: (Math.random()-0.5)*3, vy: 2+Math.random()*3,
+        size: 5+Math.random()*6, color: COLORS[Math.floor(Math.random()*COLORS.length)],
+        rot: Math.random()*Math.PI*2, vr: (Math.random()-0.5)*0.3,
+        shape: Math.random()<0.5?'rect':'circle'
+      });
+    }
+    const start = performance.now();
+    function loop(ts){
+      const elapsed = ts-start;
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      parts.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.rot += p.vr;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        if (p.shape==='rect') ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+        else { ctx.beginPath(); ctx.arc(0,0,p.size/2,0,Math.PI*2); ctx.fill(); }
+        ctx.restore();
+      });
+      if (elapsed < duration){ requestAnimationFrame(loop); } else { canvas.remove(); }
+    }
+    requestAnimationFrame(loop);
+  }
+
   function endRound(){
     running=false;
-    if (mode==='1p'){ overlayState='lost'; }
+    if (mode==='1p'){
+      overlayState='lost';
+      if (snakes[0].score > bestScore){ bestScore = snakes[0].score; if (bestScore>0) fireConfetti(); }
+    }
     else {
       const a=snakes[0], b=snakes[1];
       if (a.alive && !b.alive) overlayState='p1win';
       else if (b.alive && !a.alive) overlayState='p2win';
       else overlayState='draw';
+      if (overlayState==='p1win' || overlayState==='p2win'){ fireConfetti(); }
     }
     if (!document.getElementById('gameoverSub')){
       const sub=document.createElement('div'); sub.id='gameoverSub'; sub.className='small';
