@@ -253,7 +253,7 @@
       }
       conn.on('data', (data) => {
         if (!data) return;
-        if (data.type==='dir'){ setDir(slot, data.dir); }
+        if (data.type==='dir' && data.dir){ setDir(slot, data.dir); }
         if (data.name !== undefined){ const c = data.name?data.name.trim().slice(0,16):null; if(names[slot]!==c){names[slot]=c; renderModeLabels(); updateReadyState();} }
         if (data.color !== undefined && colors[slot] !== data.color){ colors[slot] = data.color; }
       });
@@ -280,6 +280,7 @@
     food = p;
   }
   function setDir(slot, dir){
+    if (!snakes) return;
     const s = mode==='1p' ? snakes[0] : snakes[slot-1];
     if (!s || !s.alive) return;
     const map = { up:{x:0,y:-1}, down:{x:0,y:1}, left:{x:-1,y:0}, right:{x:1,y:0} };
