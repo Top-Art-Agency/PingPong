@@ -119,15 +119,17 @@
 
   const STR = { pl:{
       subtitle:'zeskanuj kod QR telefonem, żeby zostać kontrolerem', overlayQrTitle:'ZESKANUJ, ŻEBY DOŁĄCZYĆ',
-      waitingOne:'Czekam na telefon…', connectedOne:'Telefon połączony', disconnected:'Telefon rozłączony — odśwież stronę',
+      waitingOne:'Czekam na telefon…', waitingName:'Podaj swój nick na telefonie, żeby zacząć', connectedOne:'Telefon połączony', disconnected:'Telefon rozłączony — odśwież stronę',
       lobbyJoin:'Dołącz teraz — runda zaczyna się za chwilę', gameOver:'KONIEC RUNDY', winner:'WYGRYWA',
+      waitingNameMulti:'Czekam, aż przynajmniej jeden gracz poda nick…',
       best:'NAJLEPSZY', modeLabel:'Tryb gry', mode1p:'1 GRACZ', modeMulti:'WIELU GRACZY', startingIn:'Zaczynamy za...',
       footer1p:'Stukaj, żeby ptak leciał w górę. Unikaj rur. Punkt za każdą minioną parę rur.',
       footerMulti:'Każdy telefon steruje swoim ptakiem na tej samej planszy. Dołącz skanując kod QR — runda startuje po krótkim czasie na dołączanie. Kto przetrwa najdłużej, wygrywa.'
     }, en:{
       subtitle:'scan the QR code with your phone to become a controller', overlayQrTitle:'SCAN TO JOIN',
-      waitingOne:'Waiting for phone…', connectedOne:'Phone connected', disconnected:'Phone disconnected — refresh the page',
+      waitingOne:'Waiting for phone…', waitingName:'Enter your nickname on your phone to start', connectedOne:'Phone connected', disconnected:'Phone disconnected — refresh the page',
       lobbyJoin:'Join now — round starts soon', gameOver:'ROUND OVER', winner:'WINS',
+      waitingNameMulti:'Waiting for at least one player to enter a nickname…',
       best:'BEST', modeLabel:'Game mode', mode1p:'1 PLAYER', modeMulti:'MULTIPLAYER', startingIn:'Starting in...',
       footer1p:'Tap to make the bird fly up. Avoid the pipes. Score a point for every pipe pair passed.',
       footerMulti:'Each phone controls its own bird on the same board. Join by scanning the QR — the round starts after a short join window. Whoever survives longest wins.'
@@ -209,10 +211,11 @@
           if (data.type==='flap' && running) flap();
           if (data.name !== undefined) soloName = data.name ? data.name.trim().slice(0,16) : null;
           if (data.color !== undefined) soloColor = data.color || null;
+          renderSoloReady();
         });
         conn.on('close', () => { soloConn=null; soloName=null; running=false; overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden'); });
-        el.dot.className='dot connected'; el.statusLabel.textContent = t('connectedOne'); el.overlay.classList.remove('hidden');
-        if (overlayState==='qr'){ beginLobbySolo(); }
+        el.overlay.classList.remove('hidden');
+        renderSoloReady();
       } else {
         const id = conn.peer;
         players.set(id, { conn, name:null, color:null, bird:null });
@@ -224,13 +227,24 @@
         });
         conn.on('close', () => {
           players.delete(id);
-          if (overlayState==='lobby' && players.size===0){ cancelTimers(); overlayState='qr'; renderOverlay(); }
+          if (players.size===0 && (overlayState==='lobby' || overlayState==='countdown')){
+            cancelTimers(); overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden');
+          } else if (running && players.size===0){
+            running=false; cancelTimers();
+            overlayState='qr'; renderOverlay(); el.overlay.classList.remove('hidden');
+          }
         });
         if (overlayState==='qr'){ beginLobbyMulti(); } else { renderOverlay(); }
       }
     });
   });
 
+  function renderSoloReady(){
+    const ready = !!soloConn && !!soloName;
+    el.dot.className = 'dot ' + (ready ? 'connected' : 'waiting');
+    el.statusLabel.textContent = !soloConn ? t('waitingOne') : (soloName ? t('connectedOne') : t('waitingName'));
+    if (ready && overlayState==='qr'){ beginLobbySolo(); }
+  }
   function beginLobbySolo(){
     cancelTimers(); overlayState='countdown'; countdownN=3; el.overlay.classList.remove('hidden'); renderOverlay();
     countdownTimer = setInterval(() => {
@@ -246,6 +260,23 @@
       el.overlayTitle.textContent = t('lobbyJoin') + ' (' + secs + ')';
       if (secs<=0){
         clearInterval(lobbyTimer); lobbyTimer=null;
+        const anyNamed = Array.from(players.values()).some(p => !!p.name);
+        if (!anyNamed){
+          secs = 8;
+          el.overlayTitle.textContent = t('waitingNameMulti');
+          lobbyTimer = setInterval(() => {
+            const nowNamed = Array.from(players.values()).some(p => !!p.name);
+            if (nowNamed){
+              clearInterval(lobbyTimer); lobbyTimer=null;
+              overlayState='countdown'; countdownN=3; renderOverlay();
+              countdownTimer = setInterval(() => {
+                countdownN--;
+                if (countdownN<=0){ cancelTimers(); startMulti(); } else { renderOverlay(); }
+              }, 1000);
+            }
+          }, 500);
+          return;
+        }
         overlayState='countdown'; countdownN=3; renderOverlay();
         countdownTimer = setInterval(() => {
           countdownN--;
@@ -280,7 +311,7 @@
   function startMulti(){
     el.overlay.classList.add('hidden');
     pipes=[]; distSinceSpawn=0; spawnPipe(); running=true;
-    players.forEach(p => { p.bird = newBird(); });
+    players.forEach(p => { p.bird = p.name ? newBird() : null; });
     el.scoreBoard.textContent='0';
   }
 
